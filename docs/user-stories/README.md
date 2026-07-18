@@ -8,18 +8,18 @@ Rebuild the club's legacy single-file `index.html` as a componentized Astro (SSR
 
 | # | Story | Points | Confidence | Depends on |
 |---|-------|--------|-----------|-----------|
-| [001](001-astro-vercel-foundation.md) | Scaffold Astro + Vercel foundation | 3 | High | — |
-| [002](002-componentized-pages-real-urls.md) | Componentized pages with real per-page URLs | 5 | Med | 001 |
-| [003](003-uw-madison-brand-redesign.md) | UW-Madison brand redesign | 5 | Med | 001, 002 |
-| [004](004-optimize-self-host-imagery.md) | Optimize + self-host imagery | 3 | Med | 002 |
-| [005](005-accessibility-responsive.md) | Accessibility + responsive standards | 5 | Med | 002, 003 |
-| [006](006-provision-postgres-data-store.md) | Provision Postgres + submission data store | 3 | Med | 001 |
-| [007](007-meetings-calendar.md) | Meetings calendar from repo data | 3 | Med | 002 |
-| [008](008-rsvp-to-meeting.md) | RSVP to a meeting | 5 | Med | 006, 007 |
-| [009](009-unified-inquiry-submission-flow.md) | Unified inquiry / join / start-a-digest flow | 5 | Med | 006 |
-| [010](010-spam-abuse-protection.md) | Spam + abuse protection on submission endpoints | 5 | Med | 008, 009 |
-| [011](011-admin-authentication.md) | Admin authentication | 5 | **Low** | 001 |
-| [012](012-admin-dashboard.md) | Admin dashboard (RSVPs + inquiry inbox) | 3 | Med | 006, 008, 009, 011 |
+| [001](001.md) | Scaffold Astro + Vercel foundation | 3 | High | — |
+| [002](002.md) | Componentized pages with real per-page URLs | 5 | Med | 001 |
+| [003](003.md) | UW-Madison brand redesign | 5 | Med | 001, 002 |
+| [004](004.md) | Optimize + self-host imagery | 3 | Med | 002 |
+| [005](005.md) | Accessibility + responsive standards | 5 | Med | 002, 003 |
+| [006](006.md) | Provision Postgres + submission data store | 3 | Med | 001 |
+| [007](007.md) | Meetings calendar from repo data | 3 | Med | 002 |
+| [008](008.md) | RSVP to a meeting | 5 | Med | 006, 007 |
+| [009](009.md) | Unified inquiry / join / start-a-digest flow | 5 | Med | 006 |
+| [010](010.md) | Spam + abuse protection on submission endpoints | 5 | Med | 008, 009 |
+| [011](011.md) | Admin authentication | 5 | **Low** | 001 |
+| [012](012.md) | Admin dashboard (RSVPs + inquiry inbox) | 3 | Med | 006, 008, 009, 011 |
 
 **Total ≈ 50 points.** No story reached the 8-point mandatory-decomposition threshold; each is independently shippable.
 
