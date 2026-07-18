@@ -1,0 +1,4 @@
+# Approve build scripts for toolchain deps pnpm blocks by default.
+allowBuilds:
+  esbuild: true
+  sharp: true
