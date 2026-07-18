@@ -30,3 +30,8 @@ and stop; I will commit manually.
 
 All planning artifacts — the `tasks/` folder, `SPEC.md`, `plan.md`, `todo.md` —
 always remain untracked. Never stage or commit them.
+
+## 6. No co-author tags in commits
+
+When you are granted one-time permission to commit under rule 4, never include
+co-author trailers (e.g. `Co-Authored-By:`) in the commit message.
