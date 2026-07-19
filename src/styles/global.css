@@ -1,0 +1,142 @@
+/* Global base — reset, base element styles, and shared interaction states.
+   All values reference tokens.css; no raw hex lives here.
+   Fonts are delivered by @fontsource imports in BaseLayout (self-hosted, swap). */
+
+/* Reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+img,
+picture,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+/* Base elements */
+body {
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+  line-height: 1.6;
+  color: var(--color-ink);
+  background: var(--color-paper);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  line-height: 1.2;
+  color: var(--color-ink);
+}
+
+h1 {
+  font-size: var(--step-4);
+}
+
+h2 {
+  font-size: var(--step-3);
+}
+
+h3 {
+  font-size: var(--step-2);
+}
+
+h4 {
+  font-size: var(--step-1);
+}
+
+p {
+  max-width: 70ch;
+}
+
+ul,
+ol {
+  padding-left: var(--space-6);
+}
+
+/* Shared interaction states — links, buttons, and disclosure summaries all get
+   consistent hover/active/focus treatment from these base rules. */
+a {
+  color: var(--color-cardinal);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+a:hover,
+a:active,
+button:hover,
+summary:hover {
+  color: var(--color-cardinal-dark);
+}
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--color-cardinal);
+  outline-offset: 2px;
+  border-radius: var(--radius);
+}
+
+/* Editorial template — shared content container, rhythm, and meta patterns.
+   Applied to the BaseLayout <main> so every page inherits one layout language. */
+main {
+  max-width: 68rem;
+  margin-inline: auto;
+  padding: var(--space-8) var(--space-6);
+}
+
+main > h1 {
+  margin-bottom: var(--space-6);
+}
+
+main > p {
+  margin-bottom: var(--space-4);
+}
+
+main > * + h2,
+main > * + h3 {
+  margin-top: var(--space-8);
+}
+
+/* Rhythm between stacked page sections (index, team, meetings, contact, …). */
+main > * + section {
+  margin-top: var(--space-8);
+}
+
+/* Meta patterns shared by ReviewCard and the review article header. */
+.tag {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-cardinal);
+}
+
+.authors {
+  font-size: 0.95rem;
+  color: color-mix(in srgb, var(--color-ink) 65%, transparent);
+}
+
+/* Review listing — a responsive card grid, shared by /reviews and each digest. */
+.reviews {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+  gap: var(--space-6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}

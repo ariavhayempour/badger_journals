@@ -16,6 +16,8 @@
   },
   "dependencies": {
     "@astrojs/vercel": "^8.0.0",
+    "@fontsource/inter": "^5.2.8",
+    "@fontsource/playfair-display": "^5.2.8",
     "astro": "^5.0.0"
   },
   "devDependencies": {

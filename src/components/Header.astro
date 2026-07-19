@@ -35,3 +35,62 @@ const links = [
     </ul>
   </nav>
 </header>
+<style>
+  header {
+    background: var(--color-paper);
+    border-bottom: 3px solid var(--color-cardinal);
+  }
+  nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4) var(--space-6);
+    max-width: 68rem;
+    margin-inline: auto;
+    padding: var(--space-4) var(--space-6);
+  }
+  .brand {
+    margin-right: auto;
+    font-family: var(--font-display);
+    font-size: var(--step-3);
+    font-weight: 700;
+    color: var(--color-cardinal);
+    text-decoration: none;
+  }
+  nav > ul {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3) var(--space-6);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  nav a {
+    text-decoration: none;
+    font-weight: 500;
+  }
+  .menu summary {
+    cursor: pointer;
+    font-weight: 500;
+    list-style: none;
+  }
+  .menu summary::-webkit-details-marker {
+    display: none;
+  }
+  .menu[open] summary {
+    color: var(--color-cardinal-dark);
+  }
+  .menu > ul {
+    margin: var(--space-3) 0 0;
+    padding: var(--space-3);
+    list-style: none;
+    background: var(--color-paper-muted);
+    border: 1px solid var(--color-rule);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-1);
+  }
+  .menu > ul li + li {
+    margin-top: var(--space-3);
+  }
+</style>

@@ -24,3 +24,31 @@ import { team } from '../data/team';
     </section>
   ))}
 </BaseLayout>
+<style>
+  section ul {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: var(--space-6);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  section li {
+    padding: var(--space-6);
+    background: var(--color-paper-muted);
+    border: 1px solid var(--color-rule);
+    border-radius: var(--radius);
+  }
+  section li h3 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--step-1);
+  }
+  section li p {
+    margin: 0;
+  }
+  section li p:first-of-type {
+    color: var(--color-cardinal);
+    font-weight: 500;
+  }
+</style>

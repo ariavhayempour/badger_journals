@@ -41,3 +41,31 @@ import { researchAreas } from '../data/research-areas';
     </ul>
   </section>
 </BaseLayout>
+<style>
+  .areas {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+    gap: var(--space-6);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .areas li {
+    padding: var(--space-6);
+    background: var(--color-paper-muted);
+    border: 1px solid var(--color-rule);
+    border-radius: var(--radius);
+  }
+  .areas .icon {
+    margin: 0;
+    font-size: var(--step-3);
+  }
+  .areas h3 {
+    margin: var(--space-3) 0 var(--space-3);
+    font-family: var(--font-display);
+    font-size: var(--step-1);
+  }
+  .areas p {
+    margin: 0;
+  }
+</style>
