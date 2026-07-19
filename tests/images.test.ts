@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
+import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import SEO from '../src/components/SEO.astro';
 import index from '../src/pages/index.astro?raw';
 import header from '../src/components/Header.astro?raw';
 import baseLayout from '../src/layouts/BaseLayout.astro?raw';
@@ -109,6 +111,22 @@ describe('T3 — logo in the masthead', () => {
     const logo = header.match(/<Image\b[\s\S]*?brand-logo[\s\S]*?\/?>/)?.[0] ?? '';
     expect(logo).toMatch(/alt=["']["']/);
     expect(header).toMatch(/class="brand"[\s\S]*?Badger Journals/);
+  });
+});
+
+describe('T5 — OG / social image + meta', () => {
+  it('ships the og image in public/', () => {
+    expect(readdirSync(publicDir)).toContain('og.png');
+  });
+
+  it('emits absolute og:image and twitter:image plus a large-summary card', async () => {
+    const container = await AstroContainer.create();
+    const html = await container.renderToString(SEO, {
+      props: { title: 'Home', description: 'Badger Journals.', path: '/' },
+    });
+    expect(html).toMatch(/property=["']og:image["'][^>]*content=["']https?:\/\/[^"']+\/og\.png["']/);
+    expect(html).toMatch(/name=["']twitter:image["'][^>]*content=["']https?:\/\/[^"']+\/og\.png["']/);
+    expect(html).toMatch(/name=["']twitter:card["'][^>]*content=["']summary_large_image["']/);
   });
 });
 
