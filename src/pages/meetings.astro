@@ -1,0 +1,27 @@
+---
+export const prerender = true;
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout
+  title="Meetings"
+  description="When and where Badger Journals meets, and what to expect."
+  path="/meetings"
+>
+  <h1>Meetings</h1>
+
+  <section>
+    <h2>Meeting Details</h2>
+    <p><strong>When:</strong> TBD</p>
+    <p><strong>Where:</strong> TBD</p>
+    <p><strong>Who:</strong> Open to all UW-Madison students</p>
+  </section>
+
+  <section>
+    <h2>What to Expect</h2>
+    <p>
+      Each meeting we select a recent paper, read it in advance, and come together to
+      discuss the findings, methods, and implications. No prior research experience
+      required — just curiosity!
+    </p>
+  </section>
+</BaseLayout>

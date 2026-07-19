@@ -1,0 +1,23 @@
+---
+const DIGEST_LABELS = {
+  cardiovascular: 'Cardiovascular Digest',
+  cancer: 'Cancer Digest',
+  neuroscience: 'Neuroscience Digest',
+} as const;
+
+interface Props {
+  slug: string;
+  title: string;
+  authors: string[];
+  date: string;
+  digest: keyof typeof DIGEST_LABELS;
+  excerpt: string;
+}
+const { slug, title, authors, date, digest, excerpt } = Astro.props;
+---
+<article>
+  <p class="tag">{DIGEST_LABELS[digest]}</p>
+  <h3><a href={`/reviews/${slug}`}>{title}</a></h3>
+  <p class="authors">By {authors.join(', ')} · {date}</p>
+  <p class="excerpt">{excerpt}</p>
+</article>

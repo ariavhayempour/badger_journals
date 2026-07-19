@@ -1,19 +1,57 @@
 ---
-// Placeholder home route — scaffold only; branding arrives in story 003.
-const title = 'Badger Journals';
----
+export const prerender = true;
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
 
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{title}</title>
-  </head>
-  <body>
-    <main>
-      <h1>{title}</h1>
-      <p>Coming soon.</p>
-    </main>
-  </body>
-</html>
+const ORDER = ['cardiovascular', 'cancer', 'neuroscience'];
+const digests = (await getCollection('digests')).sort(
+  (a, b) => ORDER.indexOf(a.data.slug) - ORDER.indexOf(b.data.slug),
+);
+---
+<BaseLayout
+  title="Badger Journals"
+  description="A journal club dedicated to reading, discussing, and reviewing the latest scientific papers — making cutting-edge research accessible to everyone."
+  path="/"
+>
+  <section class="hero">
+    <h1>Badger Journals</h1>
+    <p>
+      A journal club dedicated to reading, discussing, and reviewing the latest
+      scientific papers — making cutting-edge research accessible to everyone.
+    </p>
+  </section>
+
+  <section>
+    <h2>Our Digests</h2>
+    <ul class="digests">
+      {digests.map((d) => (
+        <li>
+          <a href={`/digests/${d.data.slug}`}>
+            <h3>{d.data.name}</h3>
+            <p>{d.data.description}</p>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section>
+    <h2>Mission</h2>
+    <p>
+      Badger Journals is a student-run organization dedicated to making scientific
+      research accessible to everyone. Through our journal clubs, we read, discuss,
+      and write about the latest discoveries across multiple fields of science.
+    </p>
+    <a href="/mission">Learn More</a>
+  </section>
+
+  <section>
+    <h2>Team</h2>
+    <p>
+      Badger Journals is built by passionate undergraduate students from across
+      UW-Madison. Our members develop real skills in scientific writing, critical
+      reading, and research communication while staying at the forefront of discovery.
+    </p>
+    <a href="/team">Meet the Team</a>
+  </section>
+</BaseLayout>
