@@ -1,11 +1,6 @@
 /* Global base — reset, base element styles, and shared interaction states.
-   All values reference tokens.css; no raw hex lives here. */
-
-/*
- * T2 self-hosts the fonts here — placeholder, inert until the .woff2 assets land:
- * @font-face { font-family: 'Playfair Display'; src: url('/fonts/playfair-display-700.woff2') format('woff2'); font-weight: 700; font-display: swap; }
- * @font-face { font-family: 'Inter'; src: url('/fonts/inter-400.woff2') format('woff2'); font-weight: 400; font-display: swap; }
- */
+   All values reference tokens.css; no raw hex lives here.
+   Fonts are delivered by @fontsource imports in BaseLayout (self-hosted, swap). */
 
 /* Reset */
 *,

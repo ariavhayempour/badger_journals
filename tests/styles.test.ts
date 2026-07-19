@@ -53,10 +53,27 @@ describe('T1 — global base (src/styles/global.css)', () => {
     expect(global).toContain(':focus-visible');
   });
 
-  it('keeps an @font-face placeholder inert until T2 self-hosts the fonts', () => {
-    expect(global).toMatch(/@font-face/);
-    // The placeholder must be commented out so no font request is attempted yet.
+  it('does not hand-roll @font-face — font delivery is owned by @fontsource (T2)', () => {
     expect(global).not.toMatch(/^\s*@font-face/m);
+  });
+});
+
+describe('T2 — self-hosted fonts via @fontsource', () => {
+  it('imports the Latin-subset Playfair Display display weights (600, 700)', () => {
+    expect(layout).toMatch(/@fontsource\/playfair-display\/latin-600\.css/);
+    expect(layout).toMatch(/@fontsource\/playfair-display\/latin-700\.css/);
+  });
+
+  it('imports the Latin-subset Inter body weights (400, 500, 600)', () => {
+    expect(layout).toMatch(/@fontsource\/inter\/latin-400\.css/);
+    expect(layout).toMatch(/@fontsource\/inter\/latin-500\.css/);
+    expect(layout).toMatch(/@fontsource\/inter\/latin-600\.css/);
+  });
+
+  it('makes no external font requests (no Google Fonts hosts in the styling layer)', () => {
+    for (const src of [layout, global, tokens]) {
+      expect(src).not.toMatch(/fonts\.(googleapis|gstatic)\.com/);
+    }
   });
 });
 
