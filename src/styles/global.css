@@ -116,27 +116,3 @@ main > * + h3 {
 main > * + section {
   margin-top: var(--space-8);
 }
-
-/* Meta patterns shared by ReviewCard and the review article header. */
-.tag {
-  font-size: 0.8rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--color-cardinal);
-}
-
-.authors {
-  font-size: 0.95rem;
-  color: color-mix(in srgb, var(--color-ink) 65%, transparent);
-}
-
-/* Review listing — a responsive card grid, shared by /reviews and each digest. */
-.reviews {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
-  gap: var(--space-6);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}

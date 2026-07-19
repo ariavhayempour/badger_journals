@@ -63,15 +63,6 @@ describe('T4 — editorial template (src/styles/global.css)', () => {
     expect(global).toMatch(/main\s*\{[\s\S]*?max-width/);
   });
 
-  it('lays out the review listing as a card grid', () => {
-    expect(global).toMatch(/\.reviews\s*\{[\s\S]*?grid/);
-  });
-
-  it('defines shared editorial meta patterns (tag + authors)', () => {
-    expect(global).toContain('.tag');
-    expect(global).toContain('.authors');
-  });
-
   it('spaces stacked page sections for consistent rhythm (T5)', () => {
     expect(global).toMatch(/main\s*>\s*\*\s*\+\s*section\s*\{[\s\S]*?margin-top/);
   });
