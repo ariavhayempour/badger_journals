@@ -112,6 +112,11 @@ main > * + h3 {
   margin-top: var(--space-8);
 }
 
+/* Rhythm between stacked page sections (index, team, meetings, contact, …). */
+main > * + section {
+  margin-top: var(--space-8);
+}
+
 /* Meta patterns shared by ReviewCard and the review article header. */
 .tag {
   font-size: 0.8rem;

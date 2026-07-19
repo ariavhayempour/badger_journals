@@ -1,0 +1,31 @@
+import { describe, it, expect } from 'vitest';
+import index from '../src/pages/index.astro?raw';
+import team from '../src/pages/team.astro?raw';
+import createNextDigest from '../src/pages/create-next-digest.astro?raw';
+
+const styleBlock = (src: string): string => src.match(/<style>([\s\S]*?)<\/style>/)?.[1] ?? '';
+
+// T5 styles only the pages whose bespoke lists need a layout beyond the shared
+// editorial template; prose pages (mission, meetings, contact) and the digest
+// pages already sit correctly on it and are intentionally left untouched.
+const STYLED = [
+  { name: 'index', src: index, grid: /\.digests[\s\S]*?grid/ },
+  { name: 'team', src: team, grid: /grid/ },
+  { name: 'create-next-digest', src: createNextDigest, grid: /\.areas[\s\S]*?grid/ },
+];
+
+describe('T5 — per-page editorial layout', () => {
+  for (const page of STYLED) {
+    const style = styleBlock(page.src);
+
+    it(`${page.name} carries a token-only scoped style with no raw hex`, () => {
+      expect(page.src).toMatch(/<style>[\s\S]*<\/style>/);
+      expect(style).toMatch(/var\(--/);
+      expect(style).not.toMatch(/#[0-9a-f]{3,6}/i);
+    });
+
+    it(`${page.name} lays its bespoke list out as a grid`, () => {
+      expect(style).toMatch(page.grid);
+    });
+  }
+});

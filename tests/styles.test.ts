@@ -71,6 +71,10 @@ describe('T4 — editorial template (src/styles/global.css)', () => {
     expect(global).toContain('.tag');
     expect(global).toContain('.authors');
   });
+
+  it('spaces stacked page sections for consistent rhythm (T5)', () => {
+    expect(global).toMatch(/main\s*>\s*\*\s*\+\s*section\s*\{[\s\S]*?margin-top/);
+  });
 });
 
 describe('T2 — self-hosted fonts via @fontsource', () => {
