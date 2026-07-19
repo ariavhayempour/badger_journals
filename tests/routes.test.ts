@@ -42,7 +42,7 @@ describe('static route rendering', () => {
   });
 });
 
-describe('contact page (forms deferred to 008/009)', () => {
+describe('contact page (forms deferred to 0008/0009)', () => {
   it('renders both sections without any form elements', async () => {
     const html = await render(Contact);
     expect(html).toContain('Get Involved');

@@ -1,8 +1,8 @@
-# 003 — UW-Madison brand redesign
+# 0003 — UW-Madison brand redesign
 
-Implements story `docs/user-stories/003.md` (spec: `SPEC.md`, root, untracked). A
-cross-cutting **visual system** layered on the 002 componentized pages, which shipped
-semantic HTML with class hooks but zero CSS. 003 builds the whole visual layer from
+Implements story `docs/user-stories/0003.md` (spec: `SPEC.md`, root, untracked). A
+cross-cutting **visual system** layered on the 0002 componentized pages, which shipped
+semantic HTML with class hooks but zero CSS. 0003 builds the whole visual layer from
 scratch on Cardinal Red (`#C5050C`) + white, with the legacy crimson (`#8B1A1A`) gone.
 
 ## Architecture
@@ -14,7 +14,7 @@ Design tokens + Astro scoped component styles — no CSS framework, no new UI de
 - `src/styles/global.css` — reset, base element styles, shared interaction states, and the
   editorial template (content `<main>` container, section rhythm). All values reference
   tokens; no raw hex. (The `.reviews`/`.digests`/`.tag`/`.authors` patterns were removed
-  with the reviews/digests pages — see 002.)
+  with the reviews/digests pages — see 0002.)
 - Both imported **once** in `src/layouts/BaseLayout.astro`, so every page inherits the
   system.
 - Component-local look-and-feel stays in each component's scoped `<style>` (`Header`,
@@ -67,7 +67,7 @@ Muted body text (`.authors`) is derived, not a new token:
 ## Conventions
 
 - Cardinal Red drives accents, headings, links, and the header/footer rules — **never body
-  copy** (body is `--color-ink` on `--color-paper`); the full contrast/a11y audit is 005.
+  copy** (body is `--color-ink` on `--color-paper`); the full contrast/a11y audit is 0005.
 - Interactive elements (`a`, `button`) share `:hover`, `:active`, and `:focus-visible`
   states from `global.css` base rules; components add local hover on top.
 - Header: display-serif wordmark, 3px cardinal bottom rule, flat nav links. Footer: 3px
@@ -76,7 +76,7 @@ Muted body text (`.authors`) is derived, not a new token:
 
 ## Testing
 
-- Unit/component tests use Astro's Container API (Vitest), matching the 002 pattern.
+- Unit/component tests use Astro's Container API (Vitest), matching the 0002 pattern.
 - **Container caveat:** imported global CSS and scoped `<style>` blocks are *not* emitted in
   `renderToString` output — Astro only applies the `data-astro-cid-*` scope attribute. So
   style-layer assertions read the source files (`tokens.css`/`global.css` from disk, `.astro`
@@ -90,5 +90,5 @@ Muted body text (`.authors`) is derived, not a new token:
 
 ## Deferred (owned elsewhere)
 
-Imagery / logo (004); a11y + responsive hardening beyond focus states (005); form behavior
-(008/009). 003 changed no page content, routes, or behavior — styling only.
+Imagery / logo (0004); a11y + responsive hardening beyond focus states (0005); form behavior
+(0008/0009). 0003 changed no page content, routes, or behavior — styling only.
