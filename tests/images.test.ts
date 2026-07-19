@@ -6,6 +6,8 @@ import SEO from '../src/components/SEO.astro';
 import index from '../src/pages/index.astro?raw';
 import header from '../src/components/Header.astro?raw';
 import baseLayout from '../src/layouts/BaseLayout.astro?raw';
+import teamPage from '../src/pages/team.astro?raw';
+import teamData from '../src/data/team.ts?raw';
 
 const srcDir = fileURLToPath(new URL('../src', import.meta.url));
 const imagesDir = fileURLToPath(new URL('../src/assets/images', import.meta.url));
@@ -127,6 +129,25 @@ describe('T5 — OG / social image + meta', () => {
     expect(html).toMatch(/property=["']og:image["'][^>]*content=["']https?:\/\/[^"']+\/og\.png["']/);
     expect(html).toMatch(/name=["']twitter:image["'][^>]*content=["']https?:\/\/[^"']+\/og\.png["']/);
     expect(html).toMatch(/name=["']twitter:card["'][^>]*content=["']summary_large_image["']/);
+  });
+});
+
+describe('T6 — team headshots', () => {
+  it('adds an optional, typed photo field to Member (no any)', () => {
+    expect(teamData).toMatch(/photo\?:\s*ImageMetadata/);
+    expect(teamData).not.toMatch(/photo\?:\s*any/);
+  });
+
+  it('renders a per-member <Image> headshot, lazy, alt = member name', () => {
+    expect(teamPage).toMatch(/import\s*\{\s*Image\s*\}\s*from\s*['"]astro:assets['"]/);
+    const image = teamPage.match(/<Image\b[\s\S]*?\/?>/)?.[0] ?? '';
+    expect(image).toMatch(/loading=["']lazy["']/);
+    expect(image).toMatch(/alt=\{[^}]*\.name\}/);
+  });
+
+  it('falls back to the committed placeholder when a member has no photo', () => {
+    expect(teamPage).toMatch(/import\s+\w+\s+from\s+['"][^'"]*assets\/images\/placeholder-avatar\.(jpg|png)['"]/);
+    expect(teamPage).toMatch(/\.photo\s*\?\?/);
   });
 });
 

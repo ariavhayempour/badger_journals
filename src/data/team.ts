@@ -1,7 +1,10 @@
+import type { ImageMetadata } from 'astro';
+
 export interface Member {
   name: string;
   role: string;
   major: string;
+  photo?: ImageMetadata; // imported asset; falls back to a placeholder when unset
 }
 
 export interface TeamGroup {
