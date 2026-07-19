@@ -3,9 +3,11 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import index from '../src/pages/index.astro?raw';
 import header from '../src/components/Header.astro?raw';
+import baseLayout from '../src/layouts/BaseLayout.astro?raw';
 
 const srcDir = fileURLToPath(new URL('../src', import.meta.url));
 const imagesDir = fileURLToPath(new URL('../src/assets/images', import.meta.url));
+const publicDir = fileURLToPath(new URL('../public', import.meta.url));
 
 // Source guards scan text/code files only — binary assets under src/assets/ are excluded.
 const TEXT_EXT = /\.(astro|ts|tsx|js|mjs|cjs|css|md|json)$/;
@@ -107,5 +109,18 @@ describe('T3 — logo in the masthead', () => {
     const logo = header.match(/<Image\b[\s\S]*?brand-logo[\s\S]*?\/?>/)?.[0] ?? '';
     expect(logo).toMatch(/alt=["']["']/);
     expect(header).toMatch(/class="brand"[\s\S]*?Badger Journals/);
+  });
+});
+
+describe('T4 — favicon + apple-touch-icon', () => {
+  it('ships correctly-sized icon files in public/', () => {
+    const files = readdirSync(publicDir);
+    expect(files).toContain('favicon.ico');
+    expect(files).toContain('apple-touch-icon.png');
+  });
+
+  it('links the favicon and apple-touch-icon in the document head', () => {
+    expect(baseLayout).toMatch(/<link[^>]*rel=["']icon["'][^>]*href=["']\/favicon\.ico["']/);
+    expect(baseLayout).toMatch(/<link[^>]*rel=["']apple-touch-icon["'][^>]*href=["']\/apple-touch-icon\.png["']/);
   });
 });
