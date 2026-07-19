@@ -1,0 +1,43 @@
+---
+export const prerender = true;
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { researchAreas } from '../data/research-areas';
+---
+<BaseLayout
+  title="Create the Next Digest"
+  description="Badger Journals is expanding — help launch a student-written digest in a new field of science."
+  path="/create-next-digest"
+>
+  <h1>Create the Next Digest</h1>
+  <p>
+    Badger Journals is expanding. We believe every area of science deserves accessible
+    student-written reviews. If you are passionate about a research area, we want to
+    help you build the next Badger Journals digest.
+  </p>
+
+  <section>
+    <h2>Research Areas We're Expanding Into</h2>
+    <p>
+      Our model of student-driven science communication is proven. Now we're looking
+      for passionate students to launch new digests in other cutting-edge fields.
+    </p>
+    <ul class="areas">
+      {researchAreas.map((a) => (
+        <li>
+          <p class="icon" aria-hidden="true">{a.icon}</p>
+          <h3>{a.title}</h3>
+          <p>{a.description}</p>
+        </li>
+      ))}
+      <li>
+        <p class="icon" aria-hidden="true">✨</p>
+        <h3>Your Field</h3>
+        <p>
+          Passionate about a research area not listed here? We want to hear from you.
+          Any field of science is welcome at Badger Journals.
+        </p>
+        <a href="/contact">Get in touch →</a>
+      </li>
+    </ul>
+  </section>
+</BaseLayout>

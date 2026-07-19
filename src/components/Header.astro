@@ -1,0 +1,37 @@
+---
+// Primary site navigation. Digests is a CSS-only <details> disclosure (no JS/framework);
+// every entry is a real <a href> so browser back/forward works natively.
+const digests = [
+  { href: '/digests/cardiovascular', label: 'Cardiovascular' },
+  { href: '/digests/cancer', label: 'Cancer' },
+  { href: '/digests/neuroscience', label: 'Neuroscience' },
+];
+const links = [
+  { href: '/reviews', label: 'Reviews' },
+  { href: '/meetings', label: 'Meetings' },
+  { href: '/mission', label: 'Mission' },
+  { href: '/team', label: 'Team' },
+  { href: '/create-next-digest', label: 'Create the Next Digest' },
+  { href: '/contact', label: 'Contact' },
+];
+---
+<header>
+  <nav aria-label="Primary">
+    <a href="/" class="brand">Badger Journals</a>
+    <ul>
+      <li>
+        <details class="menu">
+          <summary>Digests</summary>
+          <ul>
+            {digests.map((d) => (
+              <li><a href={d.href}>{d.label}</a></li>
+            ))}
+          </ul>
+        </details>
+      </li>
+      {links.map((l) => (
+        <li><a href={l.href}>{l.label}</a></li>
+      ))}
+    </ul>
+  </nav>
+</header>

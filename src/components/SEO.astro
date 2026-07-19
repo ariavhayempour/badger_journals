@@ -1,0 +1,19 @@
+---
+interface Props {
+  title: string;
+  description: string;
+  path: string; // canonical path, e.g. '/mission'
+}
+const { title, description, path } = Astro.props;
+// Fallback base keeps canonical/OG absolute even when Astro.site is unset (e.g. tests).
+const base = Astro.site ?? new URL('https://badger-journals.vercel.app');
+const canonical = new URL(path, base).toString();
+---
+<title>{title} · Badger Journals</title>
+<meta name="description" content={description} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Badger Journals" />
+<link rel="canonical" href={canonical} />

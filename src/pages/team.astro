@@ -1,0 +1,26 @@
+---
+export const prerender = true;
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { team } from '../data/team';
+---
+<BaseLayout
+  title="Our Team"
+  description="The undergraduate students who build Badger Journals across UW-Madison."
+  path="/team"
+>
+  <h1>Our Team</h1>
+  {team.map((group) => (
+    <section>
+      <h2>{group.title}</h2>
+      <ul>
+        {group.members.map((m) => (
+          <li>
+            <h3>{m.name}</h3>
+            <p>{m.role}</p>
+            <p>{m.major}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
+  ))}
+</BaseLayout>
