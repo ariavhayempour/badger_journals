@@ -1,7 +1,9 @@
 ---
 export const prerender = true;
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { Image } from 'astro:assets';
 import { team } from '../data/team';
+import placeholderAvatar from '../assets/images/placeholder-avatar.jpg';
 ---
 <BaseLayout
   title="Our Team"
@@ -15,6 +17,15 @@ import { team } from '../data/team';
       <ul>
         {group.members.map((m) => (
           <li>
+            <Image
+              class="headshot"
+              src={m.photo ?? placeholderAvatar}
+              alt={m.name}
+              width={200}
+              height={200}
+              format="avif"
+              loading="lazy"
+            />
             <h3>{m.name}</h3>
             <p>{m.role}</p>
             <p>{m.major}</p>
@@ -38,6 +49,14 @@ import { team } from '../data/team';
     background: var(--color-paper-muted);
     border: 1px solid var(--color-rule);
     border-radius: var(--radius);
+  }
+  .headshot {
+    display: block;
+    width: 6rem;
+    height: 6rem;
+    margin: 0 auto var(--space-4);
+    border-radius: 50%;
+    object-fit: cover;
   }
   section li h3 {
     margin: 0;

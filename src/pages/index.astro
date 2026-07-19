@@ -1,6 +1,8 @@
 ---
 export const prerender = true;
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { Image } from 'astro:assets';
+import campus from '../assets/images/campus.jpg';
 ---
 <BaseLayout
   title="Badger Journals"
@@ -8,6 +10,16 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   path="/"
 >
   <section class="hero">
+    <Image
+      class="hero-image"
+      src={campus}
+      alt="Students on the UW–Madison campus"
+      widths={[480, 800, 1200, 1650]}
+      sizes="(max-width: 60rem) 100vw, 60rem"
+      format="avif"
+      loading="eager"
+      fetchpriority="high"
+    />
     <h1>Badger Journals</h1>
     <p>
       A journal club dedicated to reading, discussing, and reviewing the latest
@@ -39,6 +51,15 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   .hero {
     text-align: center;
     padding-block: var(--space-8);
+  }
+  .hero-image {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-width: 60rem;
+    margin-inline: auto;
+    margin-block-end: var(--space-6);
+    border-radius: var(--radius);
   }
   .hero h1 {
     font-size: var(--step-4);

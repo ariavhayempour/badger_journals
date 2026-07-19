@@ -1,6 +1,6 @@
-# 002 — Componentized pages architecture
+# 0002 — Componentized pages architecture
 
-Implements story `docs/user-stories/002.md`: the legacy single-file `index.html` SPA
+Implements story `docs/user-stories/0002.md`: the legacy single-file `index.html` SPA
 (client-side `showPage()` toggle) rebuilt as componentized Astro pages, each with a real,
 directly-loadable URL. Spec: `SPEC.md` (root, untracked).
 
@@ -35,7 +35,7 @@ with the reviews/digests pages).
 
 ### Reviews / Digests removed
 
-The original 002 build shipped a `reviews` collection (6 metadata-only review pages, each
+The original 0002 build shipped a `reviews` collection (6 metadata-only review pages, each
 with its own URL via `reviews/[slug].astro`), a `digests` collection (3 digest pages), a
 shared `ReviewCard.astro`, and a Digests disclosure in the nav. All of it has since been
 removed to pare the site down to the five core pages; the home hub no longer lists digests.
@@ -46,7 +46,7 @@ the corresponding routes.
 
 Every page sets `export const prerender = true` — the six named pages (`/`, `/meetings`,
 `/mission`, `/team`, `/create-next-digest`, `/contact`) are static HTML. The
-`@astrojs/vercel` SSR adapter stays configured for later stories (006+) and the
+`@astrojs/vercel` SSR adapter stays configured for later stories (0006+) and the
 `/api/health` route; nothing in the current page set needs per-request rendering.
 
 ## Testing notes
@@ -59,12 +59,12 @@ Every page sets `export const prerender = true` — the six named pages (`/`, `/
 ## Deferrals (owned by later stories)
 
 - Visual brand redesign — the legacy crimson/serif design (Playfair Display / Cormorant
-  Garamond / Libre Baskerville, `--crimson #8B1A1A`) is **not** ported. Story 003.
-- Imagery (hub photo, logo, team SVG) — story 004.
-- Accessibility/responsive standards — story 005.
-- Meetings calendar (interactive JS month grid) — story 007. 002 ships the meeting-details
+  Garamond / Libre Baskerville, `--crimson #8B1A1A`) is **not** ported. Story 0003.
+- Imagery (hub photo, logo, team SVG) — story 0004.
+- Accessibility/responsive standards — story 0005.
+- Meetings calendar (interactive JS month grid) — story 0007. 0002 ships the meeting-details
   text only. Unknown values (meeting `When`/`Where`, unfilled team seats) use `TODO` as the
   placeholder convention until real content lands.
-- Join / Start-a-Digest / interest **forms** — dropped in 002 (legacy posted to Formspree);
-  return with the submission stories 008/009. Contact + Create-the-Next-Digest keep their
+- Join / Start-a-Digest / interest **forms** — dropped in 0002 (legacy posted to Formspree);
+  return with the submission stories 0008/0009. Contact + Create-the-Next-Digest keep their
   headers and copy.
