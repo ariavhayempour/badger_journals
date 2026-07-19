@@ -90,3 +90,48 @@ summary:focus-visible {
   outline-offset: 2px;
   border-radius: var(--radius);
 }
+
+/* Editorial template — shared content container, rhythm, and meta patterns.
+   Applied to the BaseLayout <main> so every page inherits one layout language. */
+main {
+  max-width: 68rem;
+  margin-inline: auto;
+  padding: var(--space-8) var(--space-6);
+}
+
+main > h1 {
+  margin-bottom: var(--space-6);
+}
+
+main > p {
+  margin-bottom: var(--space-4);
+}
+
+main > * + h2,
+main > * + h3 {
+  margin-top: var(--space-8);
+}
+
+/* Meta patterns shared by ReviewCard and the review article header. */
+.tag {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-cardinal);
+}
+
+.authors {
+  font-size: 0.95rem;
+  color: color-mix(in srgb, var(--color-ink) 65%, transparent);
+}
+
+/* Review listing — a responsive card grid, shared by /reviews and each digest. */
+.reviews {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+  gap: var(--space-6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}

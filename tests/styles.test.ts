@@ -58,6 +58,21 @@ describe('T1 — global base (src/styles/global.css)', () => {
   });
 });
 
+describe('T4 — editorial template (src/styles/global.css)', () => {
+  it('constrains main content to a readable measure', () => {
+    expect(global).toMatch(/main\s*\{[\s\S]*?max-width/);
+  });
+
+  it('lays out the review listing as a card grid', () => {
+    expect(global).toMatch(/\.reviews\s*\{[\s\S]*?grid/);
+  });
+
+  it('defines shared editorial meta patterns (tag + authors)', () => {
+    expect(global).toContain('.tag');
+    expect(global).toContain('.authors');
+  });
+});
+
 describe('T2 — self-hosted fonts via @fontsource', () => {
   it('imports the Latin-subset Playfair Display display weights (600, 700)', () => {
     expect(layout).toMatch(/@fontsource\/playfair-display\/latin-600\.css/);
