@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import index from '../src/pages/index.astro?raw';
 
 const srcDir = fileURLToPath(new URL('../src', import.meta.url));
 const imagesDir = fileURLToPath(new URL('../src/assets/images', import.meta.url));
@@ -59,5 +60,33 @@ describe('T1 — image source guards', () => {
       }
     }
     expect(offenders).toEqual([]);
+  });
+});
+
+describe('T2 — campus hero on the home page', () => {
+  it('imports the self-hosted campus asset', () => {
+    expect(index).toMatch(/import\s+\w+\s+from\s+['"][^'"]*assets\/images\/campus\.jpg['"]/);
+  });
+
+  it('renders the hero via astro:assets <Image>', () => {
+    expect(index).toMatch(/import\s*\{\s*Image\s*\}\s*from\s*['"]astro:assets['"]/);
+    expect(index).toMatch(/<Image\b/);
+  });
+
+  it('prioritizes the hero as the LCP element (eager + fetchpriority high)', () => {
+    const image = index.match(/<Image\b[\s\S]*?\/?>/)?.[0] ?? '';
+    expect(image).toMatch(/loading=["']eager["']/);
+    expect(image).toMatch(/fetchpriority=["']high["']/);
+  });
+
+  it('serves the hero responsively with widths and sizes', () => {
+    const image = index.match(/<Image\b[\s\S]*?\/?>/)?.[0] ?? '';
+    expect(image).toMatch(/\bwidths=/);
+    expect(image).toMatch(/\bsizes=/);
+  });
+
+  it('gives the hero descriptive alt text', () => {
+    const image = index.match(/<Image\b[\s\S]*?\/?>/)?.[0] ?? '';
+    expect(image).toMatch(/alt=["'][^"']*campus[^"']*["']/i);
   });
 });
