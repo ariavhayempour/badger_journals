@@ -33,7 +33,7 @@ export const team: TeamGroup[] = [
     members: [
       { name: 'Kevin Tran', role: 'Outreach Chair', major: 'Neuroscience, Class of 2028' },
       { name: 'Emily Au', role: 'Media Chair', major: 'Neurobiology, Class of 2028' },
-      { name: 'TBD', role: 'Media Chair', major: 'TBD' },
+      { name: 'TODO', role: 'Media Chair', major: 'TODO' },
     ],
   },
 ];

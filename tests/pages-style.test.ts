@@ -1,15 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import index from '../src/pages/index.astro?raw';
 import team from '../src/pages/team.astro?raw';
 import createNextDigest from '../src/pages/create-next-digest.astro?raw';
 
 const styleBlock = (src: string): string => src.match(/<style>([\s\S]*?)<\/style>/)?.[1] ?? '';
 
 // T5 styles only the pages whose bespoke lists need a layout beyond the shared
-// editorial template; prose pages (mission, meetings, contact) and the digest
-// pages already sit correctly on it and are intentionally left untouched.
+// editorial template; prose pages (index, mission, meetings, contact) already
+// sit correctly on it and are intentionally left untouched.
 const STYLED = [
-  { name: 'index', src: index, grid: /\.digests[\s\S]*?grid/ },
   { name: 'team', src: team, grid: /grid/ },
   { name: 'create-next-digest', src: createNextDigest, grid: /\.areas[\s\S]*?grid/ },
 ];

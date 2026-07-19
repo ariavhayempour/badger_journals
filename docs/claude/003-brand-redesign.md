@@ -12,13 +12,14 @@ Design tokens + Astro scoped component styles — no CSS framework, no new UI de
 - `src/styles/tokens.css` — the single source of raw values (color, type, space, shape).
   Every use-site references a token via `var()`; **raw hex lives only here**.
 - `src/styles/global.css` — reset, base element styles, shared interaction states, and the
-  editorial template (content `<main>` container, section rhythm, `.reviews`/`.digests`/
-  `.areas` grids, `.tag`/`.authors` meta patterns). All values reference tokens; no raw hex.
+  editorial template (content `<main>` container, section rhythm). All values reference
+  tokens; no raw hex. (The `.reviews`/`.digests`/`.tag`/`.authors` patterns were removed
+  with the reviews/digests pages — see 002.)
 - Both imported **once** in `src/layouts/BaseLayout.astro`, so every page inherits the
   system.
 - Component-local look-and-feel stays in each component's scoped `<style>` (`Header`,
-  `Footer`, `ReviewCard`) and in per-page scoped `<style>` for bespoke layouts (`index`
-  hero + digests grid, `team` member grid, `create-next-digest` areas grid).
+  `Footer`) and in per-page scoped `<style>` for bespoke layouts (`index` hero, `team`
+  member grid, `create-next-digest` areas grid).
 
 ## Locked decisions
 
@@ -67,12 +68,11 @@ Muted body text (`.authors`) is derived, not a new token:
 
 - Cardinal Red drives accents, headings, links, and the header/footer rules — **never body
   copy** (body is `--color-ink` on `--color-paper`); the full contrast/a11y audit is 005.
-- Interactive elements (`a`, `button`, `summary`) share `:hover`, `:active`, and
-  `:focus-visible` states from `global.css` base rules; components add local hover (nav
-  disclosure, card lift) on top.
-- Header: display-serif wordmark, 3px cardinal bottom rule, styled Digests `<details>`
-  disclosure. Footer: 3px cardinal top rule, paper-muted panel. Both live in `BaseLayout`,
-  so the chrome is identical on every route.
+- Interactive elements (`a`, `button`) share `:hover`, `:active`, and `:focus-visible`
+  states from `global.css` base rules; components add local hover on top.
+- Header: display-serif wordmark, 3px cardinal bottom rule, flat nav links. Footer: 3px
+  cardinal top rule, paper-muted panel. Both live in `BaseLayout`, so the chrome is
+  identical on every route.
 
 ## Testing
 

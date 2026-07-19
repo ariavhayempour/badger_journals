@@ -6,9 +6,7 @@ import Meetings from '../src/pages/meetings.astro';
 import CreateNextDigest from '../src/pages/create-next-digest.astro';
 import Contact from '../src/pages/contact.astro';
 
-// Collection-driven routes (hub, digests, reviews) are verified against the prerendered
-// build output — getCollection() is empty in the Vitest runtime. These fully-static pages
-// carry the AC-1/2/3 title+meta guarantees that are testable here.
+// These fully-static pages carry the AC-1/2/3 title+meta guarantees that are testable here.
 const STATIC_PAGES = [
   { name: 'mission', Comp: Mission, title: 'Mission · Badger Journals', h1: 'Mission' },
   { name: 'team', Comp: Team, title: 'Our Team · Badger Journals', h1: 'Our Team' },

@@ -38,16 +38,7 @@ describe('Header.astro', () => {
   it('links to every top-level route with real hrefs', async () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(Header);
-    for (const href of ['/reviews', '/meetings', '/mission', '/team', '/create-next-digest', '/contact']) {
-      expect(html).toContain(`href="${href}"`);
-    }
-  });
-
-  it('exposes a Digests menu linking to all three digest pages', async () => {
-    const container = await AstroContainer.create();
-    const html = await container.renderToString(Header);
-    expect(html).toContain('Digests');
-    for (const href of ['/digests/cardiovascular', '/digests/cancer', '/digests/neuroscience']) {
+    for (const href of ['/meetings', '/mission', '/team', '/create-next-digest', '/contact']) {
       expect(html).toContain(`href="${href}"`);
     }
   });

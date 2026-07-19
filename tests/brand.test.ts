@@ -42,19 +42,16 @@ describe('T6 — BaseLayout wires the branded system', () => {
       slots: { default: '<p>page body</p>' },
     });
     expect(html).toContain('class="brand"'); // masthead wordmark
-    expect(html).toContain('Digests'); // nav disclosure
     expect(html).toContain('Madison, WI, 53706'); // footer
     expect(html).toContain('<p>page body</p>'); // slotted content
   });
 });
 
 describe('T6 — Header/Footer render their branded structure', () => {
-  it('Header renders the wordmark, Digests disclosure, and scoped branding', async () => {
+  it('Header renders the wordmark and scoped branding', async () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(Header);
     expect(html).toMatch(/class="brand"[^>]*>Badger Journals/);
-    expect(html).toContain('<summary');
-    expect(html).toContain('Digests');
     expect(html).toMatch(/data-astro-cid/); // scoped brand styles compiled onto the chrome
   });
 

@@ -1,12 +1,6 @@
 ---
 export const prerender = true;
-import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
-
-const ORDER = ['cardiovascular', 'cancer', 'neuroscience'];
-const digests = (await getCollection('digests')).sort(
-  (a, b) => ORDER.indexOf(a.data.slug) - ORDER.indexOf(b.data.slug),
-);
 ---
 <BaseLayout
   title="Badger Journals"
@@ -19,20 +13,6 @@ const digests = (await getCollection('digests')).sort(
       A journal club dedicated to reading, discussing, and reviewing the latest
       scientific papers — making cutting-edge research accessible to everyone.
     </p>
-  </section>
-
-  <section>
-    <h2>Our Digests</h2>
-    <ul class="digests">
-      {digests.map((d) => (
-        <li>
-          <a href={`/digests/${d.data.slug}`}>
-            <h3>{d.data.name}</h3>
-            <p>{d.data.description}</p>
-          </a>
-        </li>
-      ))}
-    </ul>
   </section>
 
   <section>
@@ -67,32 +47,5 @@ const digests = (await getCollection('digests')).sort(
     max-width: 42rem;
     margin-inline: auto;
     font-size: var(--step-1);
-  }
-  .digests {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
-    gap: var(--space-6);
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-  .digests a {
-    display: block;
-    height: 100%;
-    padding: var(--space-6);
-    text-decoration: none;
-    background: var(--color-paper);
-    border: 1px solid var(--color-rule);
-    border-radius: var(--radius);
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
-  }
-  .digests a:hover {
-    border-color: var(--color-cardinal);
-    box-shadow: var(--shadow-1);
-  }
-  .digests h3 {
-    margin: 0 0 var(--space-3);
-    font-family: var(--font-display);
-    color: var(--color-cardinal);
   }
 </style>
