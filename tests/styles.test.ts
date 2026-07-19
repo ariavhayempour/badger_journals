@@ -1,0 +1,68 @@
+import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+// Vite's CSS plugin makes `*.css?raw` resolve to an empty module, so read the
+// stylesheet sources from disk instead. Minimal ambient decls keep `astro check`
+// green without pulling @types/node into the project.
+import layout from '../src/layouts/BaseLayout.astro?raw';
+
+const read = (rel: string): string =>
+  readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8');
+const tokens = read('../src/styles/tokens.css');
+const global = read('../src/styles/global.css');
+
+describe('T1 — design tokens (src/styles/tokens.css)', () => {
+
+  it('defines the Cardinal Red brand color and its dark variant', () => {
+    expect(tokens).toMatch(/--color-cardinal:\s*#c5050c/i);
+    expect(tokens).toMatch(/--color-cardinal-dark:\s*#[0-9a-f]{3,6}/i);
+  });
+
+  it('defines the neutral ink/paper scale', () => {
+    for (const name of ['--color-ink', '--color-paper', '--color-paper-muted', '--color-rule']) {
+      expect(tokens).toContain(name);
+    }
+  });
+
+  it('defines display + body font family tokens', () => {
+    expect(tokens).toMatch(/--font-display:[^;]*Playfair Display/);
+    expect(tokens).toMatch(/--font-body:[^;]*Inter/);
+  });
+
+  it('defines a type scale and spacing/shape tokens', () => {
+    for (const name of ['--step-0', '--step-4', '--space-4', '--radius', '--shadow-1']) {
+      expect(tokens).toContain(name);
+    }
+  });
+
+  it('never reintroduces the legacy crimson', () => {
+    expect(tokens.toLowerCase()).not.toContain('#8b1a1a');
+  });
+});
+
+describe('T1 — global base (src/styles/global.css)', () => {
+  it('consumes tokens for body typography and links (no raw hex)', () => {
+    expect(global).toMatch(/var\(--font-body\)/);
+    expect(global).toMatch(/var\(--color-cardinal/);
+    expect(global).not.toMatch(/#[0-9a-f]{3,6}/i);
+  });
+
+  it('provides shared :hover, :active, and :focus-visible interaction states', () => {
+    expect(global).toContain(':hover');
+    expect(global).toContain(':active');
+    expect(global).toContain(':focus-visible');
+  });
+
+  it('keeps an @font-face placeholder inert until T2 self-hosts the fonts', () => {
+    expect(global).toMatch(/@font-face/);
+    // The placeholder must be commented out so no font request is attempted yet.
+    expect(global).not.toMatch(/^\s*@font-face/m);
+  });
+});
+
+describe('T1 — BaseLayout wires the styling layer once', () => {
+  it('imports both the tokens and global base stylesheets', () => {
+    expect(layout).toMatch(/import\s+['"][^'"]*styles\/tokens\.css['"]/);
+    expect(layout).toMatch(/import\s+['"][^'"]*styles\/global\.css['"]/);
+  });
+});
