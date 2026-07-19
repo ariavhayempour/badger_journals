@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import index from '../src/pages/index.astro?raw';
+import header from '../src/components/Header.astro?raw';
 
 const srcDir = fileURLToPath(new URL('../src', import.meta.url));
 const imagesDir = fileURLToPath(new URL('../src/assets/images', import.meta.url));
@@ -88,5 +89,23 @@ describe('T2 — campus hero on the home page', () => {
   it('gives the hero descriptive alt text', () => {
     const image = index.match(/<Image\b[\s\S]*?\/?>/)?.[0] ?? '';
     expect(image).toMatch(/alt=["'][^"']*campus[^"']*["']/i);
+  });
+});
+
+describe('T3 — logo in the masthead', () => {
+  it('imports astro:assets Image and the self-hosted logo asset', () => {
+    expect(header).toMatch(/import\s*\{\s*Image\s*\}\s*from\s*['"]astro:assets['"]/);
+    expect(header).toMatch(/import\s+\w+\s+from\s+['"][^'"]*assets\/images\/logo\.jpg['"]/);
+  });
+
+  it('renders the logo via <Image> inside the brand link', () => {
+    expect(header).toMatch(/<Image\b[\s\S]*?class=["']brand-logo["'][\s\S]*?\/?>/);
+  });
+
+  it('keeps the visible wordmark text as the brand link’s accessible name', () => {
+    // Logo is decorative (alt="") because the adjacent wordmark text names the link.
+    const logo = header.match(/<Image\b[\s\S]*?brand-logo[\s\S]*?\/?>/)?.[0] ?? '';
+    expect(logo).toMatch(/alt=["']["']/);
+    expect(header).toMatch(/class="brand"[\s\S]*?Badger Journals/);
   });
 });
