@@ -32,6 +32,17 @@ is asserted directly from the `tokens.css` values against the WCAG 2.1 formula.
 The AA threshold for normal text is 4.5:1, and every foreground/background pair
 the site actually paints (across the six pages plus chrome) must clear it.
 
+## `tests/headings.test.ts` — heading hierarchy
+
+Story 0005 requires a correct heading outline (axe can't fully confirm this under
+jsdom — `page-has-heading-one` lands in `incomplete`). The test renders each full
+page (including the `Footer` "Socials" `<h2>`), pulls the heading levels in
+document order via a regex over the rendered HTML, and asserts: exactly one
+`<h1>`, the first heading is the `<h1>`, and no forward jump greater than one
+level (`<h1>`→`<h3>` fails; going shallower, e.g. `<h3>`→`<h2>`, is allowed). The
+regex is used rather than jsdom because the rendered string is enough and it
+keeps the jsdom type shim minimal.
+
 ## `tests/pages-style.test.ts` — which pages carry scoped styles
 
 Task T5 styles only the pages whose bespoke lists need a layout beyond the
