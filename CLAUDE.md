@@ -92,8 +92,18 @@ always remain untracked. Never stage or commit them.
 When you are granted one-time permission to commit under rule 4, never include
 co-author trailers (e.g. `Co-Authored-By:`) in the commit message.
 
+### 7. Code comments describe the code, not the plan
+
+Code-file comments must never reference planning-artifact identifiers — story
+numbers, task numbers (`T5`), or similar. Those are mutable and get reorganized;
+a comment pinned to one reads as stale the moment it changes. Explain the
+technical reason instead: functionality, behavior, constraints, or dependencies.
+(Cross-references between user-story docs may cite other story numbers freely —
+this rule is about code comments only.)
+
 ## Common Mistakes
 
 <!-- Add entries when Claude does something wrong -->
 
 - Run `pnpm build` (includes `astro check`) and `pnpm test` before declaring a task done
+- Add code-file comments longer than one line into a respective `docs/claude` file. 

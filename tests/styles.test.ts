@@ -1,9 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-// Vite's CSS plugin makes `*.css?raw` resolve to an empty module, so read the
-// stylesheet sources from disk instead. Minimal ambient decls keep `astro check`
-// green without pulling @types/node into the project.
+// Read stylesheet sources from disk — Vite resolves `*.css?raw` to an empty module (docs/claude/code-notes.md).
 import layout from '../src/layouts/BaseLayout.astro?raw';
 
 const read = (rel: string): string =>
