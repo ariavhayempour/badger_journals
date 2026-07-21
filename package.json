@@ -5,19 +5,22 @@
   "private": true,
   "packageManager": "pnpm@11.4.0",
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "scripts": {
     "dev": "astro dev",
     "build": "astro check && astro build",
     "preview": "astro preview",
     "typecheck": "astro check",
-    "test": "vitest run"
+    "test": "vitest run",
+    "db:migrate": "node --experimental-strip-types scripts/migrate.ts",
+    "db:check": "node --experimental-strip-types scripts/db-check.ts"
   },
   "dependencies": {
     "@astrojs/vercel": "^8.0.0",
     "@fontsource/inter": "^5.2.8",
     "@fontsource/playfair-display": "^5.2.8",
+    "@neondatabase/serverless": "^1.0.0",
     "astro": "^5.0.0",
     "sharp": "0.34.5"
   },
