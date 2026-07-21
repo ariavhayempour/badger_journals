@@ -97,3 +97,4 @@ co-author trailers (e.g. `Co-Authored-By:`) in the commit message.
 <!-- Add entries when Claude does something wrong -->
 
 - Run `pnpm build` (includes `astro check`) and `pnpm test` before declaring a task done
+- Add code-file comments longer than one line into a respective `docs/claude` file. 

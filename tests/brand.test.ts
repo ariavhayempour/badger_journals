@@ -51,8 +51,7 @@ describe('T6 — Header/Footer render their branded structure', () => {
   it('Header renders the wordmark and scoped branding', async () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(Header);
-    // Wordmark text still lives in the masthead; the decorative logo <img> now
-    // precedes it inside .brand (0004), so allow markup between the two.
+    // Decorative logo <img> precedes the wordmark inside .brand (0004), so allow markup between (docs/claude/code-notes.md).
     expect(html).toMatch(/class="brand"[\s\S]*?Badger Journals/);
     expect(html).toMatch(/data-astro-cid/); // scoped brand styles compiled onto the chrome
   });
