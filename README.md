@@ -8,7 +8,8 @@ in later stories.
 
 ## Prerequisites
 
-- **Node.js 20+** (Vercel's serverless runtime uses Node 22; any 20+ works locally)
+- **Node.js 22+** (`engines.node` is `>=22`; the `db:migrate` / `db:check` scripts rely on
+  Node 22 native TypeScript stripping and the global `WebSocket`)
 - **pnpm** (the committed package manager — the lockfile is pnpm's)
 
 Enable pnpm with Corepack if you don't have it:
@@ -32,6 +33,8 @@ pnpm install
 | `pnpm typecheck` | Type-check only (`astro check`), no build output |
 | `pnpm test` | Run the Vitest suite once |
 | `pnpm preview` | Serve the production build locally |
+| `pnpm db:migrate` | Apply pending SQL migrations (reads `DATABASE_URL`) |
+| `pnpm db:check` | Connectivity check against `DATABASE_URL` (insert → read → delete) |
 
 ### Quick health check
 
@@ -43,6 +46,21 @@ curl http://localhost:4321/api/health
 ```
 
 The `time` value changes on every request.
+
+## Database & migrations
+
+The durable data layer is **Neon** serverless Postgres (via the Vercel Marketplace
+integration), accessed with `@neondatabase/serverless` and raw SQL migrations — no ORM.
+Credentials come from `DATABASE_URL` (a Vercel env secret; `.env` locally, never committed).
+
+```bash
+npx vercel env pull .env                                   # get DATABASE_URL locally
+DATABASE_URL="$DATABASE_URL_UNPOOLED" pnpm db:migrate       # apply migrations (unpooled url)
+node --env-file=.env --experimental-strip-types scripts/db-check.ts   # connectivity check
+```
+
+Full details — provisioning, secret handling, the schema, and how to add a migration — are
+in [`docs/claude/0006-database.md`](docs/claude/0006-database.md).
 
 ## Project structure
 
@@ -67,10 +85,11 @@ The `time` value changes on every request.
 
 Hosting is **Vercel**, with continuous deployment from GitHub:
 
-1. In Vercel, import this GitHub repository (framework preset: **Astro**, Node **20+**).
+1. In Vercel, import this GitHub repository (framework preset: **Astro**, Node **22**).
 2. Vercel builds with the `@astrojs/vercel` adapter for SSR on serverless functions.
 3. Every push to **`main`** triggers an automatic production deployment at the project's live URL.
 
-No environment variables or secrets are required for this scaffold. Verify a deploy by hitting
-the live `/` (expect HTTP 200) and `/api/health` twice (the `time` value should differ between
-requests, confirming SSR in production).
+The Neon integration injects `DATABASE_URL` (and `DATABASE_URL_UNPOOLED`) into the Vercel
+environment; set the Vercel project's build Node version to **22** to match `engines.node`.
+Verify a deploy by hitting the live `/` (expect HTTP 200) and `/api/health` twice (the `time`
+value should differ between requests, confirming SSR in production).
