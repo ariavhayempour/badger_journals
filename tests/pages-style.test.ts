@@ -4,7 +4,7 @@ import createNextDigest from '../src/pages/create-next-digest.astro?raw';
 
 const styleBlock = (src: string): string => src.match(/<style>([\s\S]*?)<\/style>/)?.[1] ?? '';
 
-// T5 styles only pages with bespoke lists; prose pages already fit the shared editorial template (docs/claude/code-notes.md).
+// Only pages with bespoke lists carry scoped styles; prose pages already fit the shared editorial template (docs/claude/code-notes.md).
 const STYLED = [
   { name: 'team', src: team, grid: /grid/ },
   { name: 'create-next-digest', src: createNextDigest, grid: /\.areas[\s\S]*?grid/ },

@@ -11,7 +11,7 @@ import Team from '../src/pages/team.astro';
 import CreateNextDigest from '../src/pages/create-next-digest.astro';
 import Contact from '../src/pages/contact.astro';
 
-// Story 0005 gate: every page must carry no critical/serious axe violations (docs/claude/code-notes.md).
+// Audit gate: every page must carry no critical/serious axe violations (docs/claude/code-notes.md).
 const PAGES = [
   { name: 'index', Comp: Index },
   { name: 'meetings', Comp: Meetings },

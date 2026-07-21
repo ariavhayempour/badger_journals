@@ -8,7 +8,7 @@ import Team from '../src/pages/team.astro';
 import CreateNextDigest from '../src/pages/create-next-digest.astro';
 import Contact from '../src/pages/contact.astro';
 
-// Story 0005 gate: one <h1> per page and no skipped heading levels (docs/claude/code-notes.md).
+// Accessibility gate: one <h1> per page and no skipped heading levels (docs/claude/code-notes.md).
 const PAGES = [
   { name: 'index', Comp: Index },
   { name: 'meetings', Comp: Meetings },
