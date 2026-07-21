@@ -43,6 +43,19 @@ level (`<h1>`→`<h3>` fails; going shallower, e.g. `<h3>`→`<h2>`, is allowed)
 regex is used rather than jsdom because the rendered string is enough and it
 keeps the jsdom type shim minimal.
 
+## `tests/reflow.test.ts` — horizontal-scroll guard
+
+jsdom has no layout engine, so overflow can't be measured by rendering. Instead
+this is a static heuristic over every `.css` file and scoped `<style>` block: no
+`width`/`min-width` may exceed the 320px viewport (a lookbehind skips
+`max-width`, which is harmless); every grid `minmax()` column-min must fit the
+mobile content budget (320px minus `main`'s 1.5rem inline padding on each side =
+272px); and no `white-space: nowrap` may appear (it would stop text wrapping).
+It is a regression guard, not a full layout check — it assumes content sits on
+the shared `main` container and can't track arbitrary nested padding, so a real
+browser pass (story 0007+ interactive work) remains the ground truth for pixel
+overflow.
+
 ## `tests/pages-style.test.ts` — which pages carry scoped styles
 
 Task T5 styles only the pages whose bespoke lists need a layout beyond the
