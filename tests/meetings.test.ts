@@ -69,10 +69,10 @@ describe('/meetings render', () => {
   });
 
   it('renders the empty state when there are no upcoming meetings', async () => {
-    expect(await renderWith([])).toContain('No upcoming meetings scheduled');
+    expect(await renderWith([])).toContain('Stay tuned for upcoming meetings!');
     // All-past: empty state still shows, and the past section renders beneath it.
     const allPast = await renderWith([PAST]);
-    expect(allPast).toContain('No upcoming meetings scheduled');
+    expect(allPast).toContain('Stay tuned for upcoming meetings!');
     expect(allPast).toContain('Past meetings');
   });
 

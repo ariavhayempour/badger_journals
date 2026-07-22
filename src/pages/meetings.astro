@@ -29,7 +29,7 @@ const detail = (m: Meeting): string => [m.time, m.location].filter(Boolean).join
       ))}
     </ul>
   ) : (
-    <p class="empty">No upcoming meetings scheduled — check back soon.</p>
+    <p class="empty">Stay tuned for upcoming meetings!</p>
   )}
 
   {past.length > 0 && (
