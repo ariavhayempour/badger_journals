@@ -1,6 +1,15 @@
 ---
 export const prerender = true;
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { meetings, splitMeetings, type Meeting } from '../data/meetings';
+
+const buildDate = new Date().toISOString().slice(0, 10); // 'now' is build time — correct for a prerendered page
+const { upcoming, past } = splitMeetings(meetings, buildDate);
+
+// UTC formatter matches the UTC-midnight parse of an ISO date, avoiding an off-by-one day shift.
+const dateFmt = new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' });
+const formatDate = (iso: string): string => dateFmt.format(new Date(iso));
+const detail = (m: Meeting): string => [m.time, m.location].filter(Boolean).join(' · ');
 ---
 <BaseLayout
   title="Meetings"
@@ -9,19 +18,78 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 >
   <h1>Meetings</h1>
 
-  <section>
-    <h2>Meeting Details</h2>
-    <p><strong>When:</strong> TODO</p>
-    <p><strong>Where:</strong> TODO</p>
-    <p><strong>Who:</strong> Open to all UW-Madison students</p>
-  </section>
+  {upcoming.length > 0 ? (
+    <ul class="meetings">
+      {upcoming.map((m) => (
+        <li>
+          <time class="date" datetime={m.date}>{formatDate(m.date)}</time>
+          {m.title && <p class="title">{m.title}</p>}
+          {detail(m) && <p class="detail">{detail(m)}</p>}
+        </li>
+      ))}
+    </ul>
+  ) : (
+    <p class="empty">No upcoming meetings scheduled — check back soon.</p>
+  )}
 
-  <section>
-    <h2>What to Expect</h2>
-    <p>
-      Each meeting we select a recent paper, read it in advance, and come together to
-      discuss the findings, methods, and implications. No prior research experience
-      required — just curiosity!
-    </p>
-  </section>
+  {past.length > 0 && (
+    <section class="past">
+      <h2>Past meetings</h2>
+      <ul class="meetings">
+        {past.map((m) => (
+          <li>
+            <time class="date" datetime={m.date}>{formatDate(m.date)}</time>
+            {m.title && <p class="title">{m.title}</p>}
+            {detail(m) && <p class="detail">{detail(m)}</p>}
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
 </BaseLayout>
+<style>
+  .meetings {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: var(--space-4);
+  }
+  .meetings li {
+    padding: var(--space-4) var(--space-6);
+    background: var(--color-paper-muted);
+    border: 1px solid var(--color-rule);
+    border-left: 3px solid var(--color-cardinal);
+    border-radius: var(--radius);
+  }
+  .date {
+    display: block;
+    font-family: var(--font-display);
+    font-size: var(--step-1);
+    color: var(--color-ink);
+  }
+  .title {
+    margin: var(--space-3) 0 0;
+    font-weight: 500;
+  }
+  .detail {
+    margin: var(--space-3) 0 0;
+    color: var(--color-ink);
+  }
+  .empty {
+    padding: var(--space-6);
+    background: var(--color-paper-muted);
+    border: 1px solid var(--color-rule);
+    border-radius: var(--radius);
+  }
+  .past {
+    margin-top: var(--space-8);
+  }
+  /* De-emphasize past meetings by more than color: a distinct heading, muted accent, and smaller scale. */
+  .past .meetings li {
+    border-left-color: var(--color-rule);
+  }
+  .past .date {
+    font-size: var(--step-0);
+  }
+</style>
