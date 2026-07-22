@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
+import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { validateRsvp, type RsvpInput } from '../src/lib/rsvp-validation';
+import RsvpForm from '../src/components/RsvpForm.astro';
 
 const valid: RsvpInput = { name: 'Bucky Badger', email: 'bucky@wisc.edu', meeting: '2026-09-12-kickoff' };
 
@@ -54,7 +56,7 @@ describe('validateRsvp — valid input', () => {
   });
 });
 
-// --- Task 3: insertRsvp DB helper (client mocked, no live DB) ---
+// --- insertRsvp DB helper (client mocked, no live DB) ---
 
 type SqlImpl = (strings: TemplateStringsArray, ...values: unknown[]) => Promise<unknown>;
 
@@ -69,6 +71,7 @@ async function withMockedSql(impl: SqlImpl) {
 
 afterEach(() => {
   vi.doUnmock('../src/db/client');
+  vi.doUnmock('../src/db/rsvp');
   vi.resetModules();
 });
 
@@ -100,5 +103,111 @@ describe('insertRsvp', () => {
     const [strings, ...values] = sql.mock.calls[0] as [TemplateStringsArray, ...unknown[]];
     expect(values).toEqual([input.name, input.email, input.meeting]);
     expect(strings.join('')).not.toContain(input.email);
+  });
+});
+
+// --- POST /api/rsvp route (insertRsvp mocked) ---
+
+type InsertResult = { status: 'ok' | 'duplicate' };
+
+// Load the route with insertRsvp replaced, then POST the given raw body string.
+async function postRsvp(rawBody: string, insertImpl?: (i: RsvpInput) => Promise<InsertResult>) {
+  vi.resetModules();
+  const insertRsvp = vi.fn(insertImpl ?? (async () => ({ status: 'ok' as const })));
+  vi.doMock('../src/db/rsvp', () => ({ insertRsvp }));
+  const { POST } = await import('../src/pages/api/rsvp');
+  const request = new Request('http://localhost/api/rsvp', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: rawBody,
+  });
+  const res = await POST({ request } as never);
+  return { res, insertRsvp };
+}
+
+describe('POST /api/rsvp', () => {
+  it('returns 201 ok for a valid RSVP and inserts it', async () => {
+    const { res, insertRsvp } = await postRsvp(JSON.stringify(valid));
+    expect(res.status).toBe(201);
+    expect(res.headers.get('content-type')).toBe('application/json');
+    expect(await res.json()).toEqual({ ok: true });
+    expect(insertRsvp).toHaveBeenCalledWith(valid);
+  });
+
+  it('returns 400 with field errors for invalid input and does not insert', async () => {
+    const { res, insertRsvp } = await postRsvp(JSON.stringify({ ...valid, email: 'foo@gmail.com' }));
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.ok).toBe(false);
+    expect(body.errors.map((e: { field: string }) => e.field)).toContain('email');
+    expect(insertRsvp).not.toHaveBeenCalled();
+  });
+
+  it('returns 409 duplicate when the insert reports a duplicate', async () => {
+    const { res } = await postRsvp(JSON.stringify(valid), async () => ({ status: 'duplicate' }));
+    expect(res.status).toBe(409);
+    expect(await res.json()).toEqual({ ok: false, code: 'duplicate' });
+  });
+
+  it('returns 500 server when the insert throws unexpectedly', async () => {
+    const { res } = await postRsvp(JSON.stringify(valid), async () => {
+      throw new Error('boom');
+    });
+    expect(res.status).toBe(500);
+    expect(await res.json()).toEqual({ ok: false, code: 'server' });
+  });
+
+  it('returns 400 without throwing on malformed JSON', async () => {
+    const { res, insertRsvp } = await postRsvp('{ not json');
+    expect(res.status).toBe(400);
+    expect((await res.json()).ok).toBe(false);
+    expect(insertRsvp).not.toHaveBeenCalled();
+  });
+});
+
+// --- RsvpForm.astro markup + a11y ---
+
+const SLUG = '2026-09-12-kickoff';
+
+async function renderForm(meeting: string): Promise<string> {
+  return (await AstroContainer.create()).renderToString(RsvpForm, { props: { meeting } });
+}
+
+describe('RsvpForm.astro', () => {
+  it('renders a native submittable form targeting the API', async () => {
+    const html = await renderForm(SLUG);
+    expect(html).toMatch(/<form[^>]*action="\/api\/rsvp"/);
+    expect(html).toMatch(/<form[^>]*method="post"/i);
+    expect(html).toMatch(/<button[^>]*type="submit"/);
+  });
+
+  it('wires the meeting slug into a hidden field', async () => {
+    const html = await renderForm(SLUG);
+    expect(html).toMatch(new RegExp(`<input[^>]*type="hidden"[^>]*name="meeting"[^>]*value="${SLUG}"`));
+  });
+
+  it('associates every input with a label via matching for/id', async () => {
+    const html = await renderForm(SLUG);
+    for (const field of ['name', 'email']) {
+      const input = new RegExp(`<input[^>]*name="${field}"[^>]*id="([^"]+)"|<input[^>]*id="([^"]+)"[^>]*name="${field}"`).exec(html);
+      expect(input, `input for ${field}`).not.toBeNull();
+      const id = input![1] ?? input![2];
+      expect(html).toMatch(new RegExp(`<label[^>]*for="${id}"`));
+    }
+  });
+
+  it('gives each text input an aria-describedby error region and a polite status region', async () => {
+    const html = await renderForm(SLUG);
+    expect(html).toMatch(/<input[^>]*name="name"[^>]*aria-describedby=/);
+    expect(html).toMatch(/<input[^>]*name="email"[^>]*aria-describedby=/);
+    expect(html).toMatch(/role="status"[^>]*aria-live="polite"|aria-live="polite"[^>]*role="status"/);
+  });
+
+  it('scopes element ids by slug so multiple forms on one page stay unique', async () => {
+    const a = await renderForm('slug-a');
+    const b = await renderForm('slug-b');
+    expect(a).toContain('slug-a');
+    expect(b).toContain('slug-b');
+    expect(a).not.toContain('slug-b');
   });
 });
