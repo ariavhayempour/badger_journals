@@ -1,6 +1,7 @@
 ---
 export const prerender = true;
 import BaseLayout from '../layouts/BaseLayout.astro';
+import RsvpForm from '../components/RsvpForm.astro';
 import { meetings, splitMeetings, type Meeting } from '../data/meetings';
 
 const buildDate = new Date().toISOString().slice(0, 10); // 'now' is build time — correct for a prerendered page
@@ -25,6 +26,7 @@ const detail = (m: Meeting): string => [m.time, m.location].filter(Boolean).join
           <time class="date" datetime={m.date}>{formatDate(m.date)}</time>
           {m.title && <p class="title">{m.title}</p>}
           {detail(m) && <p class="detail">{detail(m)}</p>}
+          <RsvpForm meeting={m.id} />
         </li>
       ))}
     </ul>

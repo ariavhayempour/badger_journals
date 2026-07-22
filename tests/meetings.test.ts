@@ -3,8 +3,8 @@ import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { splitMeetings, type Meeting } from '../src/data/meetings';
 
 // Fixed far-past / far-future so assertions never depend on the real clock.
-const PAST: Meeting = { date: '2000-01-01', title: 'Retro kickoff', time: '5:00 PM', location: 'Old Hall 100' };
-const FUTURE: Meeting = { date: '2099-12-31', title: 'Future session', time: '6:00 PM', location: 'Chamberlin Hall 2103' };
+const PAST: Meeting = { id: '2000-01-01-retro', date: '2000-01-01', title: 'Retro kickoff', time: '5:00 PM', location: 'Old Hall 100' };
+const FUTURE: Meeting = { id: '2099-12-31-future', date: '2099-12-31', title: 'Future session', time: '6:00 PM', location: 'Chamberlin Hall 2103' };
 const TODAY = '2050-06-15'; // between PAST and FUTURE
 
 // Render the page against a seeded meetings array by mocking the data module.
@@ -23,10 +23,10 @@ async function renderWith(meetings: Meeting[]): Promise<string> {
 describe('splitMeetings — pure ordering/split logic', () => {
   it('sorts upcoming ascending and past descending from unordered input', () => {
     const input: Meeting[] = [
-      { date: '2050-08-01' },
-      { date: '2050-07-01' },
-      { date: '2050-01-01' },
-      { date: '2050-03-01' },
+      { id: 'm-2050-08-01', date: '2050-08-01' },
+      { id: 'm-2050-07-01', date: '2050-07-01' },
+      { id: 'm-2050-01-01', date: '2050-01-01' },
+      { id: 'm-2050-03-01', date: '2050-03-01' },
     ];
     const { upcoming, past } = splitMeetings(input, TODAY);
     expect(upcoming.map((m) => m.date)).toEqual(['2050-07-01', '2050-08-01']);
@@ -40,7 +40,7 @@ describe('splitMeetings — pure ordering/split logic', () => {
   });
 
   it('treats a meeting dated exactly today as upcoming', () => {
-    const { upcoming, past } = splitMeetings([{ date: TODAY }], TODAY);
+    const { upcoming, past } = splitMeetings([{ id: 'm-today', date: TODAY }], TODAY);
     expect(upcoming).toHaveLength(1);
     expect(past).toHaveLength(0);
   });
@@ -76,8 +76,16 @@ describe('/meetings render', () => {
     expect(allPast).toContain('Past meetings');
   });
 
-  it('emits static markup only — no form or interactive-widget elements', async () => {
+  // Upcoming meetings now carry an RSVP form, superseding the earlier static-only invariant.
+  it('exposes an RSVP form keyed to each upcoming meeting, but not to past meetings', async () => {
     const html = await renderWith([FUTURE, PAST]);
-    expect(html).not.toMatch(/<form|<input|<textarea|<select|astro-island/i);
+    expect(html).toContain('action="/api/rsvp"');
+    expect(html).toContain(`value="${FUTURE.id}"`); // form wired to the upcoming meeting's slug
+    expect(html).not.toContain(`value="${PAST.id}"`); // past meetings get no form
+  });
+
+  it('renders no form in the empty state or an all-past list', async () => {
+    expect(await renderWith([])).not.toMatch(/<form/i);
+    expect(await renderWith([PAST])).not.toMatch(/<form/i);
   });
 });
