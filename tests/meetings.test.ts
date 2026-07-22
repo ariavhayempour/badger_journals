@@ -76,8 +76,16 @@ describe('/meetings render', () => {
     expect(allPast).toContain('Past meetings');
   });
 
-  it('emits static markup only — no form or interactive-widget elements', async () => {
+  // Upcoming meetings now carry an RSVP form, superseding the earlier static-only invariant.
+  it('exposes an RSVP form keyed to each upcoming meeting, but not to past meetings', async () => {
     const html = await renderWith([FUTURE, PAST]);
-    expect(html).not.toMatch(/<form|<input|<textarea|<select|astro-island/i);
+    expect(html).toContain('action="/api/rsvp"');
+    expect(html).toContain(`value="${FUTURE.id}"`); // form wired to the upcoming meeting's slug
+    expect(html).not.toContain(`value="${PAST.id}"`); // past meetings get no form
+  });
+
+  it('renders no form in the empty state or an all-past list', async () => {
+    expect(await renderWith([])).not.toMatch(/<form/i);
+    expect(await renderWith([PAST])).not.toMatch(/<form/i);
   });
 });
