@@ -53,3 +53,52 @@ describe('validateRsvp — valid input', () => {
     expect(validateRsvp(valid)).toEqual([]);
   });
 });
+
+// --- Task 3: insertRsvp DB helper (client mocked, no live DB) ---
+
+type SqlImpl = (strings: TemplateStringsArray, ...values: unknown[]) => Promise<unknown>;
+
+// Load insertRsvp with src/db/client's `sql` replaced by a spy, so no real DB is touched.
+async function withMockedSql(impl: SqlImpl) {
+  vi.resetModules();
+  const sql = vi.fn(impl);
+  vi.doMock('../src/db/client', () => ({ sql }));
+  const { insertRsvp } = await import('../src/db/rsvp');
+  return { insertRsvp, sql };
+}
+
+afterEach(() => {
+  vi.doUnmock('../src/db/client');
+  vi.resetModules();
+});
+
+describe('insertRsvp', () => {
+  const input: RsvpInput = { name: 'Bucky', email: 'bucky@wisc.edu', meeting: '2026-09-12-kickoff' };
+
+  it('returns ok on a successful insert', async () => {
+    const { insertRsvp } = await withMockedSql(async () => []);
+    expect(await insertRsvp(input)).toEqual({ status: 'ok' });
+  });
+
+  it('maps a 23505 unique-violation to duplicate', async () => {
+    const { insertRsvp } = await withMockedSql(async () => {
+      throw Object.assign(new Error('duplicate key'), { code: '23505' });
+    });
+    expect(await insertRsvp(input)).toEqual({ status: 'duplicate' });
+  });
+
+  it('propagates any non-unique-violation error', async () => {
+    const { insertRsvp } = await withMockedSql(async () => {
+      throw Object.assign(new Error('connection reset'), { code: '08006' });
+    });
+    await expect(insertRsvp(input)).rejects.toThrow('connection reset');
+  });
+
+  it('passes values as parameters, never concatenated into the SQL text', async () => {
+    const { insertRsvp, sql } = await withMockedSql(async () => []);
+    await insertRsvp(input);
+    const [strings, ...values] = sql.mock.calls[0] as [TemplateStringsArray, ...unknown[]];
+    expect(values).toEqual([input.name, input.email, input.meeting]);
+    expect(strings.join('')).not.toContain(input.email);
+  });
+});
