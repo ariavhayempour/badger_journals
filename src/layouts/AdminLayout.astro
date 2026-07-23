@@ -1,29 +1,33 @@
 ---
-// Admin shell: Cardinal top bar + iconed sidebar, distinct from the public BaseLayout.
-import { UserButton } from '@clerk/astro/components';
+// Admin shell: top bar with site nav + iconed sidebar, distinct from the public BaseLayout.
 import '@fontsource/spectral/latin-600.css';
 import '@fontsource/spectral/latin-700.css';
 import '@fontsource/spectral/latin-800.css';
 import '@fontsource-variable/hanken-grotesk';
 import '../styles/global.css';
-import AdminNav, { type AdminLink } from '../components/AdminNav';
+import Header from '../components/Header.astro';
+import { type AdminLink } from '../components/AdminNav';
 import { listRsvps } from '../db/rsvp';
 import { listSubmissions } from '../db/submission';
 
 interface Props {
   title: string;
+  rsvpsCount?: number;
+  submissionsCount?: number;
 }
-const { title } = Astro.props;
+const { title, rsvpsCount: propRsvps, submissionsCount: propSubmissions } = Astro.props;
 
-const [rsvps, submissions] = await Promise.all([listRsvps(), listSubmissions()]);
+const rsvpsCount = propRsvps ?? (await listRsvps()).length;
+const submissionsCount = propSubmissions ?? (await listSubmissions()).length;
+
 const current = Astro.url.pathname;
 const isActive = (href: string) => (href === '/admin' ? current === '/admin' : current.startsWith(href));
 
 const links: AdminLink[] = [
   { href: '/admin', label: 'Dashboard', icon: 'dashboard', active: isActive('/admin') },
   { href: '/admin/events', label: 'Events', icon: 'events', active: isActive('/admin/events') },
-  { href: '/admin/rsvps', label: 'RSVPs', icon: 'rsvps', count: rsvps.length, active: isActive('/admin/rsvps') },
-  { href: '/admin/submissions', label: 'Submissions', icon: 'submissions', count: submissions.length, active: isActive('/admin/submissions') },
+  { href: '/admin/rsvps', label: 'RSVPs', icon: 'rsvps', count: rsvpsCount, active: isActive('/admin/rsvps') },
+  { href: '/admin/submissions', label: 'Submissions', icon: 'submissions', count: submissionsCount, active: isActive('/admin/submissions') },
 ];
 
 // Inline icons keep the desktop sidebar server-rendered (no hydration).
@@ -40,21 +44,11 @@ const icons: Record<AdminLink['icon'], string> = {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex, nofollow" />
+    <link rel="preconnect" href="https://clerk.accounts.dev" />
     <title>{title} · Badger Journals Admin</title>
   </head>
   <body class="min-h-dvh bg-canvas text-foreground">
-    <header class="flex h-15 items-center gap-3 bg-primary px-4 text-white sm:px-6">
-      <AdminNav client:load links={links} />
-      <a href="/admin" class="flex items-center gap-2.5">
-        <span class="grid size-8 place-items-center rounded-lg bg-white/16 font-serif text-base font-extrabold">B</span>
-        <span class="font-serif text-lg font-bold">Badger Journals</span>
-        <span class="hidden rounded bg-white/18 px-1.5 py-0.5 text-[0.62rem] font-bold tracking-[0.12em] uppercase sm:inline">Admin</span>
-      </a>
-      <div class="ml-auto flex items-center gap-4">
-        <a href="/" class="hidden text-sm font-medium text-white/85 transition-colors hover:text-white sm:inline">View site ↗</a>
-        <UserButton />
-      </div>
-    </header>
+    <Header adminLinks={links} />
 
     <div class="mx-auto flex w-full max-w-[1440px]">
       <aside class="hidden w-60 shrink-0 border-r border-sidebar-border bg-sidebar lg:block">
