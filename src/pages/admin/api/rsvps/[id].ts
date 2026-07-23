@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { validateRsvpEdit } from '../../../../lib/rsvp-validation';
 import { updateRsvp, deleteRsvp } from '../../../../db/rsvp';
+import type { RsvpStatus } from '../../../../db/schema';
 
 export const prerender = false;
 
@@ -12,16 +13,14 @@ export const PATCH: APIRoute = async ({ params, request }) => {
   if (isNaN(id)) return json({ ok: false }, 400);
 
   const body = await request.json().catch(() => null);
-  const name = typeof body?.name === 'string' ? body.name : '';
-  const email = typeof body?.email === 'string' ? body.email : '';
+  const status = (typeof body?.status === 'string' ? body.status : '') as RsvpStatus;
 
-  const errors = validateRsvpEdit({ name, email });
+  const errors = validateRsvpEdit({ status });
   if (errors.length > 0) return json({ ok: false, errors }, 400);
 
   try {
-    const result = await updateRsvp(id, { name, email });
+    const result = await updateRsvp(id, { status });
     if (result.status === 'not_found') return json({ ok: false }, 404);
-    if (result.status === 'duplicate') return json({ ok: false, code: 'duplicate' }, 409);
     return json({ ok: true, rsvp: result.rsvp }, 200);
   } catch (e) {
     return json({ ok: false }, 500);

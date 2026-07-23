@@ -17,6 +17,7 @@ const group: MeetingGroup = {
       name: 'Ada Lovelace',
       email: 'ada@wisc.edu',
       meeting: 'fall-kickoff',
+      status: 'pending',
       created_at: '2026-07-10T15:30:00.000Z',
     },
   ],
@@ -61,6 +62,7 @@ describe('RsvpTable', () => {
             name: 'Grace Hopper',
             email: 'grace@wisc.edu',
             meeting: 'spring-finale',
+            status: 'present',
             created_at: '2026-07-12T15:30:00.000Z',
           },
         ],
@@ -101,5 +103,11 @@ describe('RsvpTable', () => {
   it('tags each row with its RSVP id for the client script to target', async () => {
     const html = await render([group]);
     expect(html).toContain('data-rsvp-id="1"');
+  });
+
+  it('renders the attendance status as a labelled badge with its value on the cell', async () => {
+    const html = await render([group]);
+    expect(html).toMatch(/data-field="status"[^>]*data-status="pending"/);
+    expect(html).toContain('Pending');
   });
 });

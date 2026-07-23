@@ -5,13 +5,12 @@ import type { RsvpRow } from './schema';
 export type InsertRsvpResult = { status: 'ok' } | { status: 'duplicate' };
 export type UpdateRsvpResult =
   | { status: 'ok'; rsvp: RsvpRow }
-  | { status: 'duplicate' }
   | { status: 'not_found' };
 
 // Newest first so groupRsvpsByMeeting can rank meetings and rows by recency.
 export async function listRsvps(): Promise<RsvpRow[]> {
   return (await sql`
-    SELECT id, name, email, meeting, created_at
+    SELECT id, name, email, meeting, status, created_at
     FROM rsvps
     ORDER BY created_at DESC
   `) as RsvpRow[];
@@ -31,20 +30,15 @@ export async function insertRsvp(input: RsvpInput): Promise<InsertRsvpResult> {
   }
 }
 
-// Admin edit: name/email only, no meeting reassignment (see docs/claude/0008-rsvp.md).
+// Admin edit: attendance status only; name/email/meeting are immutable here (see docs/claude/0008-rsvp.md).
 export async function updateRsvp(id: number, input: RsvpEditInput): Promise<UpdateRsvpResult> {
-  try {
-    const rows = (await sql`
-      UPDATE rsvps
-      SET name = ${input.name.trim()}, email = ${input.email.trim()}
-      WHERE id = ${id}
-      RETURNING id, name, email, meeting, created_at
-    `) as RsvpRow[];
-    return rows[0] ? { status: 'ok', rsvp: rows[0] } : { status: 'not_found' };
-  } catch (err) {
-    if (isUniqueViolation(err)) return { status: 'duplicate' };
-    throw err;
-  }
+  const rows = (await sql`
+    UPDATE rsvps
+    SET status = ${input.status}
+    WHERE id = ${id}
+    RETURNING id, name, email, meeting, status, created_at
+  `) as RsvpRow[];
+  return rows[0] ? { status: 'ok', rsvp: rows[0] } : { status: 'not_found' };
 }
 
 export async function deleteRsvp(id: number): Promise<void> {

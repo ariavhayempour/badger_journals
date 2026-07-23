@@ -16,10 +16,10 @@ async function loadRoute(overrides: { updateRsvp?: (...args: unknown[]) => unkno
 }
 
 describe('PATCH /admin/api/rsvps/[id]', () => {
-  const valid = { name: 'Bucky Badger', email: 'bucky@wisc.edu' };
+  const valid = { status: 'present' };
 
   it('returns 200 and the updated row for a valid edit', async () => {
-    const rsvp = { id: 1, name: valid.name, email: valid.email, meeting: 'kickoff', created_at: '2026-07-01T00:00:00.000Z' };
+    const rsvp = { id: 1, name: 'Bucky Badger', email: 'bucky@wisc.edu', meeting: 'kickoff', status: 'present', created_at: '2026-07-01T00:00:00.000Z' };
     const { PATCH, updateRsvp } = await loadRoute({ updateRsvp: async () => ({ status: 'ok', rsvp }) });
     const request = new Request('http://localhost/admin/api/rsvps/1', {
       method: 'PATCH',
@@ -32,18 +32,18 @@ describe('PATCH /admin/api/rsvps/[id]', () => {
     expect(updateRsvp).toHaveBeenCalledWith(1, valid);
   });
 
-  it('returns 400 with field errors for an invalid email and does not update', async () => {
+  it('returns 400 with field errors for an invalid status and does not update', async () => {
     const { PATCH, updateRsvp } = await loadRoute({});
     const request = new Request('http://localhost/admin/api/rsvps/1', {
       method: 'PATCH',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ ...valid, email: 'foo@gmail.com' }),
+      body: JSON.stringify({ status: 'maybe' }),
     });
     const res = await PATCH({ params: { id: '1' }, request } as never);
     expect(res.status).toBe(400);
     const body = await res.json();
     expect(body.ok).toBe(false);
-    expect(body.errors.map((e: { field: string }) => e.field)).toContain('email');
+    expect(body.errors.map((e: { field: string }) => e.field)).toContain('status');
     expect(updateRsvp).not.toHaveBeenCalled();
   });
 
@@ -68,18 +68,6 @@ describe('PATCH /admin/api/rsvps/[id]', () => {
     });
     const res = await PATCH({ params: { id: '999' }, request } as never);
     expect(res.status).toBe(404);
-  });
-
-  it('returns 409 when the edited email collides with another guest at the same meeting', async () => {
-    const { PATCH } = await loadRoute({ updateRsvp: async () => ({ status: 'duplicate' }) });
-    const request = new Request('http://localhost/admin/api/rsvps/1', {
-      method: 'PATCH',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify(valid),
-    });
-    const res = await PATCH({ params: { id: '1' }, request } as never);
-    expect(res.status).toBe(409);
-    expect(await res.json()).toEqual({ ok: false, code: 'duplicate' });
   });
 
   it('returns 400 without throwing on malformed JSON', async () => {

@@ -7,17 +7,18 @@ export interface RsvpInput {
 }
 
 import { MAX_NAME, MAX_EMAIL } from './limits';
+import { RSVP_STATUSES, type RsvpStatus } from '../db/schema';
 
-export type RsvpField = 'name' | 'email' | 'meeting';
+export type RsvpField = 'name' | 'email' | 'meeting' | 'status';
 
 export interface RsvpFieldError {
   field: RsvpField;
   message: string;
 }
 
+// Admin edit only changes attendance status; name/email stay read-only.
 export interface RsvpEditInput {
-  name: string;
-  email: string;
+  status: RsvpStatus;
 }
 
 // Local part, then optional subdomains, then wisc.edu as the final domain.
@@ -51,7 +52,10 @@ export function validateRsvp(input: RsvpInput): RsvpFieldError[] {
   return errors;
 }
 
-// Admin edit of an existing RSVP: name/email only, no meeting reassignment.
+// Admin edit of an existing RSVP: attendance status only.
 export function validateRsvpEdit(input: RsvpEditInput): RsvpFieldError[] {
-  return [...nameErrors(input.name), ...emailErrors(input.email)];
+  if (!RSVP_STATUSES.includes(input.status)) {
+    return [{ field: 'status', message: 'Please choose a valid status.' }];
+  }
+  return [];
 }
