@@ -21,9 +21,17 @@ export interface SubmissionRow {
   created_at: string;
 }
 
+export interface RateLimitHitRow {
+  key: string;
+  window_start: string;
+  count: number;
+  expires_at: string;
+}
+
 export const TABLES = {
   rsvps: 'rsvps',
   submissions: 'submissions',
+  rateLimitHits: 'rate_limit_hits',
 } as const;
 
 export const RSVP_COLUMNS = {
@@ -41,4 +49,11 @@ export const SUBMISSION_COLUMNS = {
   submissionType: 'submission_type',
   message: 'message',
   createdAt: 'created_at',
+} as const;
+
+export const RATE_LIMIT_COLUMNS = {
+  key: 'key',
+  windowStart: 'window_start',
+  count: 'count',
+  expiresAt: 'expires_at',
 } as const;
