@@ -17,8 +17,7 @@ const json = (body: unknown, status: number): Response =>
 
 // Returns a short-circuit Response when a request should be blocked, else null to continue.
 export async function checkAbuse({ body, endpoint, clientAddress }: AbuseContext): Promise<Response | null> {
-  // Honeypot first, so bot noise never burns a rate-limit slot. Silent-accept: bots see the
-  // normal success shape and no row is written.
+  // Honeypot first so bot noise never burns a rate-limit slot; silent-accept returns the normal success shape without writing a row.
   if (isBotSubmission(body)) return json({ ok: true }, 201);
 
   try {

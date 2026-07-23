@@ -1,5 +1,4 @@
-// Pure, browser-safe RSVP validation. No node:* or DB imports — the client
-// script and the API route both import this so the rules stay in one place.
+// Pure, browser-safe RSVP validation (no node:*/DB imports) so the client script and API route share one rules source.
 
 export interface RsvpInput {
   name: string;

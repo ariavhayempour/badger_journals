@@ -1,4 +1,4 @@
-// Hidden field name. Humans never see or fill it; bots that autofill every input do.
+// Hidden field name humans never see or fill, but bots that autofill every input do.
 export const HONEYPOT_FIELD = 'company';
 
 // True only when the honeypot carries meaningful text, so blank human submissions pass.

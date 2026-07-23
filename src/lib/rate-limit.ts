@@ -1,5 +1,4 @@
-// Pure fixed-window rate-limit policy. No node:*/DB imports; the clock is passed in
-// so buckets stay deterministic and unit-testable.
+// Pure fixed-window rate-limit policy (no node:*/DB imports); the clock is injected so buckets stay deterministic and unit-testable.
 
 export const WINDOW_MS = 60_000;
 export const MAX_HITS = 5;
