@@ -17,24 +17,13 @@ import InquiryForm from '../components/InquiryForm.astro';
     </div>
   </section>
 
-  <div class="mx-auto grid max-w-5xl gap-12 px-6 py-16 lg:grid-cols-[1.2fr_1fr] lg:items-start">
+  <div class="mx-auto max-w-2xl px-6 py-16">
     <section>
-      <h2 class="font-serif text-2xl font-bold tracking-tight">Get involved</h2>
-      <p class="mt-2 max-w-[52ch] text-lg text-muted-foreground">
-        Interested in joining Badger Journals? Reach out and we'll be in touch about how
-        to get involved.
+      <h2 class="font-serif text-2xl font-bold tracking-tight">Send us a message</h2>
+      <p class="mt-2 text-lg text-muted-foreground">
+        Whether you want to join our team, start a new digest, or just say hello — we'd love to hear from you.
       </p>
-      <InquiryForm type="inquiry" />
+      <InquiryForm />
     </section>
-
-    <aside class="rounded-3xl border border-border bg-canvas p-8">
-      <h2 class="font-serif text-2xl font-bold tracking-tight">Start a new digest</h2>
-      <p class="mt-2 text-muted-foreground">
-        Want to launch a new Badger Journals digest in a field of science you care about?
-      </p>
-      <a href="/create-next-digest" class="mt-4 inline-block font-semibold text-primary hover:underline">
-        Start a new digest →
-      </a>
-    </aside>
   </div>
 </BaseLayout>

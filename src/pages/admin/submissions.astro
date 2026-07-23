@@ -7,10 +7,38 @@ import Panel from '../../components/admin/Panel.astro';
 import InquiryTable from '../../components/InquiryTable.astro';
 import { listSubmissions } from '../../db/submission';
 
-const submissions = await listSubmissions();
+const allSubmissions = await listSubmissions();
+const filterType = Astro.url.searchParams.get('type') as string | null;
+
+const submissions = allSubmissions.filter(s => {
+  if (filterType === 'unread') return !s.is_read;
+  if (filterType === 'read') return s.is_read;
+  if (filterType && filterType !== 'all') return s.submission_type === filterType;
+  return true;
+});
+
+const types = [
+  { value: 'all', label: 'All types' },
+  { value: 'unread', label: 'Unread' },
+  { value: 'read', label: 'Read' },
+  { value: 'inquiry', label: 'Inquiries' },
+  { value: 'join', label: 'Team joins' },
+  { value: 'digest', label: 'Digest pitches' },
+];
 ---
-<AdminLayout title="Submissions" submissionsCount={submissions.length}>
-  <PageHeader title="Submissions" subtitle="Inquiries, team applications, and digest pitches." />
+<AdminLayout title="Submissions" submissionsCount={allSubmissions.length}>
+  <PageHeader title="Submissions" subtitle="Inquiries, team applications, and digest pitches.">
+    <div slot="action">
+      <select 
+        class="h-9 rounded-md border border-input bg-background px-3 text-sm shadow-sm outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+        onchange="window.location.href = this.value === 'all' ? '/admin/submissions' : '/admin/submissions?type=' + this.value"
+      >
+        {types.map(t => (
+          <option value={t.value} selected={(filterType || 'all') === t.value}>{t.label}</option>
+        ))}
+      </select>
+    </div>
+  </PageHeader>
   <Panel title="Inbox" count={`${submissions.length} total`}>
     <InquiryTable submissions={submissions} />
   </Panel>

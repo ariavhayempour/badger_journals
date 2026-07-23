@@ -32,23 +32,17 @@ const ICON = {
   events: 'M3 5h18v16H3zM3 9h18M8 3v4M16 3v4',
   rsvps: 'M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9.5 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8',
   submissions: 'M4 4h16v16H4zM4 7l8 6 8-6',
-  archive: 'M4 4h16v4H4zM6 8h12v12H6zM10 12h4',
 };
 const now = new Date();
 const todayLabel = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 ---
 <AdminLayout title="Dashboard" rsvpsCount={rsvps.length} submissionsCount={submissions.length}>
-  <PageHeader title="Dashboard" subtitle={`A snapshot of club activity — ${todayLabel}.`}>
-    <a slot="action" href="/admin/events" class="inline-flex h-9 items-center gap-1.5 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90">
-      + Add event
-    </a>
-  </PageHeader>
+  <PageHeader title="Dashboard" subtitle={`A snapshot of club activity — ${todayLabel}.`} />
 
-  <div class="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-    <StatCard label="Upcoming meetings" value={upcoming.length} hint={nextHint} iconPath={ICON.events} />
-    <StatCard label="Total RSVPs" value={rsvps.length} iconPath={ICON.rsvps} />
-    <StatCard label="Submissions" value={submissions.length} iconPath={ICON.submissions} />
-    <StatCard label="Events on record" value={events.length} iconPath={ICON.archive} />
+  <div class="mb-8 grid gap-4 sm:grid-cols-3">
+    <StatCard label="Upcoming meetings" value={upcoming.length} hint={nextHint} iconPath={ICON.events} href="/admin/events" />
+    <StatCard label="Total RSVPs" value={rsvps.length} iconPath={ICON.rsvps} href="/admin/rsvps" />
+    <StatCard label="Submissions" value={submissions.length} iconPath={ICON.submissions} href="/admin/submissions" />
   </div>
 
   <div class="grid gap-6 lg:grid-cols-2">
