@@ -1,0 +1,47 @@
+---
+// Admin shell: separate from the public BaseLayout because the admin area is a distinct, unlinked surface.
+import { UserButton } from '@clerk/astro/components';
+import '../styles/tokens.css';
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+}
+const { title } = Astro.props;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>{title} · Badger Journals Admin</title>
+  </head>
+  <body>
+    <header class="admin-bar">
+      <span class="admin-brand">Badger Journals Admin</span>
+      <UserButton />
+    </header>
+    <main class="admin-main">
+      <slot />
+    </main>
+  </body>
+</html>
+
+<style>
+  .admin-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--color-border, #e5e5e5);
+  }
+  .admin-brand {
+    font-weight: 600;
+  }
+  .admin-main {
+    max-width: 60rem;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+  }
+</style>

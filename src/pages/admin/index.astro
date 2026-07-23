@@ -1,0 +1,9 @@
+---
+// Protected placeholder; the middleware gate already redirected signed-out requests, so no auth check or data read here.
+export const prerender = false;
+import AdminLayout from '../../layouts/AdminLayout.astro';
+---
+<AdminLayout title="Dashboard">
+  <h1>Admin</h1>
+  <p>You are signed in. Dashboard content arrives in a later story.</p>
+</AdminLayout>

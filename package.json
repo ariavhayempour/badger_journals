@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@astrojs/vercel": "^8.0.0",
+    "@clerk/astro": "^4.0.0",
     "@fontsource/inter": "^5.2.8",
     "@fontsource/playfair-display": "^5.2.8",
     "@neondatabase/serverless": "^1.0.0",
