@@ -8,6 +8,7 @@ function row(overrides: Partial<RsvpRow>): RsvpRow {
     name: 'Ada',
     email: 'ada@example.com',
     meeting: 'Kickoff',
+    status: 'pending',
     created_at: '2026-07-01T10:00:00.000Z',
     ...overrides,
   };

@@ -3,11 +3,15 @@
 export const SUBMISSION_TYPES = ['inquiry', 'join', 'digest'] as const;
 export type SubmissionType = (typeof SUBMISSION_TYPES)[number];
 
+export const RSVP_STATUSES = ['pending', 'present', 'absent'] as const;
+export type RsvpStatus = (typeof RSVP_STATUSES)[number];
+
 export interface RsvpRow {
   id: number;
   name: string;
   email: string;
   meeting: string;
+  status: RsvpStatus;
   created_at: string;
 }
 
@@ -50,6 +54,7 @@ export const RSVP_COLUMNS = {
   name: 'name',
   email: 'email',
   meeting: 'meeting',
+  status: 'status',
   createdAt: 'created_at',
 } as const;
 

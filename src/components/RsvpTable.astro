@@ -1,8 +1,7 @@
 ---
 import type { MeetingGroup } from '../lib/rsvp-grouping';
-import type { EventRow } from '../db/schema';
+import type { EventRow, RsvpStatus } from '../db/schema';
 import { describeMeetingWhen } from '../lib/meeting-when';
-import Badge from './admin/Badge.astro';
 
 interface Props {
   groups: MeetingGroup[];
@@ -10,6 +9,14 @@ interface Props {
   today: string;
 }
 const { groups, events, today } = Astro.props;
+
+// Attendance status → label + badge classes. Kept in sync with STATUS in the client script below.
+const STATUS_META: Record<RsvpStatus, { label: string; badge: string }> = {
+  pending: { label: 'Pending', badge: 'bg-muted text-muted-foreground' },
+  present: { label: 'Present', badge: 'bg-success-tint text-success' },
+  absent: { label: 'Absent', badge: 'bg-destructive/10 text-destructive' },
+};
+const badgeBase = 'status-badge inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold whitespace-nowrap';
 
 const formatTimestamp = (iso: string): string =>
   new Date(iso).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
@@ -83,7 +90,9 @@ const td = 'border-b border-border/50 px-5 py-3.5 align-top';
                       >
                         <td class={`${td} font-semibold`} data-field="name">{rsvp.name}</td>
                         <td class={`${td} text-muted-foreground`} data-field="email">{rsvp.email}</td>
-                        <td class={td}><Badge variant="confirmed">Confirmed</Badge></td>
+                        <td class={td} data-field="status" data-status={rsvp.status}>
+                          <span class:list={[badgeBase, STATUS_META[rsvp.status].badge]}>{STATUS_META[rsvp.status].label}</span>
+                        </td>
                         <td class={`${td} text-muted-foreground whitespace-nowrap`}>{formatTimestamp(rsvp.created_at)}</td>
                         <td class={`${td} w-[5.5rem]`}>
                           <div class="flex items-center justify-end gap-0.5">
@@ -236,12 +245,35 @@ const td = 'border-b border-border/50 px-5 py-3.5 align-top';
     });
   }
 
+  // Kept in sync with STATUS_META in the component frontmatter above.
+  const STATUS = {
+    pending: { label: 'Pending', badge: 'bg-muted text-muted-foreground' },
+    present: { label: 'Present', badge: 'bg-success-tint text-success' },
+    absent: { label: 'Absent', badge: 'bg-destructive/10 text-destructive' },
+  } as const;
+  type StatusKey = keyof typeof STATUS;
+  const BADGE_BASE = 'status-badge inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold whitespace-nowrap';
+
   document.querySelectorAll<HTMLTableRowElement>('tbody tr[data-rsvp-id]').forEach((row) => {
-    let original = { name: '', email: '' };
+    let originalStatus: StatusKey = 'pending';
 
     const nameTd = row.querySelector<HTMLElement>('[data-field="name"]')!;
-    const emailTd = row.querySelector<HTMLElement>('[data-field="email"]')!;
+    const statusTd = row.querySelector<HTMLElement>('[data-field="status"]')!;
     const id = row.dataset.rsvpId;
+
+    const readStatus = (): StatusKey => {
+      const s = statusTd.dataset.status;
+      return s === 'present' || s === 'absent' ? s : 'pending';
+    };
+
+    const renderBadge = (status: StatusKey) => {
+      statusTd.innerHTML = '';
+      const span = document.createElement('span');
+      span.className = `${BADGE_BASE} ${STATUS[status].badge}`;
+      span.textContent = STATUS[status].label;
+      statusTd.append(span);
+      statusTd.dataset.status = status;
+    };
 
     const showEditingActions = (editing: boolean) => {
       row.querySelectorAll<HTMLButtonElement>('[data-mode="editing"]').forEach((btn) => {
@@ -253,46 +285,39 @@ const td = 'border-b border-border/50 px-5 py-3.5 align-top';
     };
 
     row.querySelector('[data-action="edit"]')?.addEventListener('click', () => {
-      original = { name: nameTd.textContent ?? '', email: emailTd.textContent ?? '' };
-      nameTd.innerHTML = '';
-      nameTd.append(makeInput('name', original.name));
-      emailTd.innerHTML = '';
-      emailTd.append(makeInput('email', original.email));
+      originalStatus = readStatus();
+      statusTd.innerHTML = '';
+      statusTd.append(makeStatusSelect(originalStatus));
       row.dataset.editing = 'true';
       showEditingActions(true);
-      nameTd.querySelector('input')?.focus();
+      statusTd.querySelector('select')?.focus();
     });
 
     row.querySelector('[data-action="cancel"]')?.addEventListener('click', () => {
-      nameTd.textContent = original.name;
-      emailTd.textContent = original.email;
+      renderBadge(originalStatus);
       delete row.dataset.editing;
       showEditingActions(false);
     });
 
     row.querySelector('[data-action="save"]')?.addEventListener('click', async () => {
-      const name = nameTd.querySelector<HTMLInputElement>('input')?.value.trim() || original.name;
-      const email = emailTd.querySelector<HTMLInputElement>('input')?.value.trim() || original.email;
+      const status = (statusTd.querySelector<HTMLSelectElement>('select')?.value as StatusKey) || originalStatus;
 
       try {
         const res = await fetch(`/admin/api/rsvps/${id}`, {
           method: 'PATCH',
           headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ name, email }),
+          body: JSON.stringify({ status }),
         });
         if (!res.ok) throw new Error();
       } catch {
         alert('Failed to save changes.');
-        nameTd.textContent = original.name;
-        emailTd.textContent = original.email;
+        renderBadge(originalStatus);
         delete row.dataset.editing;
         showEditingActions(false);
         return;
       }
 
-      nameTd.textContent = name;
-      emailTd.textContent = email;
-      row.dataset.search = `${name} ${email}`.toLowerCase();
+      renderBadge(status);
       delete row.dataset.editing;
       showEditingActions(false);
       row.classList.remove('rsvp-row-flash');
@@ -301,7 +326,7 @@ const td = 'border-b border-border/50 px-5 py-3.5 align-top';
     });
 
     row.querySelector('[data-action="delete"]')?.addEventListener('click', async () => {
-      if (!window.confirm(`Remove ${original.name || nameTd.textContent}'s RSVP? This cannot be undone.`)) return;
+      if (!window.confirm(`Remove ${nameTd.textContent}'s RSVP? This cannot be undone.`)) return;
 
       try {
         const res = await fetch(`/admin/api/rsvps/${id}`, { method: 'DELETE' });
@@ -321,13 +346,18 @@ const td = 'border-b border-border/50 px-5 py-3.5 align-top';
     });
   });
 
-  function makeInput(field: 'name' | 'email', value: string): HTMLInputElement {
-    const input = document.createElement('input');
-    input.className = 'rsvp-row-input';
-    input.value = value;
-    input.setAttribute('aria-label', field === 'name' ? 'Name' : 'Email');
-    if (field === 'email') input.type = 'email';
-    return input;
+  function makeStatusSelect(current: StatusKey): HTMLSelectElement {
+    const select = document.createElement('select');
+    select.className = 'rsvp-row-input';
+    select.setAttribute('aria-label', 'Status');
+    (Object.keys(STATUS) as StatusKey[]).forEach((key) => {
+      const opt = document.createElement('option');
+      opt.value = key;
+      opt.textContent = STATUS[key].label;
+      if (key === current) opt.selected = true;
+      select.append(opt);
+    });
+    return select;
   }
 
   function updateGuestCount(card: HTMLElement) {

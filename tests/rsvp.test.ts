@@ -57,23 +57,14 @@ describe('validateRsvp — valid input', () => {
 });
 
 describe('validateRsvpEdit', () => {
-  const editValid = { name: 'Bucky Badger', email: 'bucky@wisc.edu' };
-
-  it('returns no errors for valid edit input', () => {
-    expect(validateRsvpEdit(editValid)).toEqual([]);
+  it('accepts each valid attendance status', () => {
+    for (const status of ['pending', 'present', 'absent'] as const) {
+      expect(validateRsvpEdit({ status })).toEqual([]);
+    }
   });
 
-  it('flags an empty name', () => {
-    expect(validateRsvpEdit({ ...editValid, name: '' }).map((e) => e.field)).toContain('name');
-  });
-
-  it('rejects a non-wisc email', () => {
-    expect(validateRsvpEdit({ ...editValid, email: 'foo@gmail.com' }).map((e) => e.field)).toContain('email');
-  });
-
-  it('never flags meeting, since edits cannot reassign it', () => {
-    const errors = validateRsvpEdit({ name: '', email: 'foo@gmail.com' });
-    expect(errors.map((e) => e.field)).not.toContain('meeting');
+  it('flags an unknown status', () => {
+    expect(validateRsvpEdit({ status: 'maybe' as never }).map((e) => e.field)).toContain('status');
   });
 });
 
@@ -130,11 +121,11 @@ describe('insertRsvp', () => {
 
 // --- updateRsvp DB helper ---
 
-const editInput = { name: '  Bucky  ', email: '  bucky@wisc.edu  ' };
+const editInput = { status: 'present' as const };
 
 describe('updateRsvp', () => {
   it('returns the updated row on success', async () => {
-    const row = { id: 1, name: 'Bucky', email: 'bucky@wisc.edu', meeting: 'kickoff', created_at: '2026-07-01T00:00:00.000Z' };
+    const row = { id: 1, name: 'Bucky', email: 'bucky@wisc.edu', meeting: 'kickoff', status: 'present', created_at: '2026-07-01T00:00:00.000Z' };
     const { updateRsvp } = await withMockedSql(async () => [row]);
     expect(await updateRsvp(1, editInput)).toEqual({ status: 'ok', rsvp: row });
   });
@@ -144,28 +135,21 @@ describe('updateRsvp', () => {
     expect(await updateRsvp(999, editInput)).toEqual({ status: 'not_found' });
   });
 
-  it('maps a 23505 unique-violation to duplicate', async () => {
-    const { updateRsvp } = await withMockedSql(async () => {
-      throw Object.assign(new Error('duplicate key'), { code: '23505' });
-    });
-    expect(await updateRsvp(1, editInput)).toEqual({ status: 'duplicate' });
-  });
-
-  it('propagates any non-unique-violation error', async () => {
+  it('propagates any error from the update', async () => {
     const { updateRsvp } = await withMockedSql(async () => {
       throw Object.assign(new Error('connection reset'), { code: '08006' });
     });
     await expect(updateRsvp(1, editInput)).rejects.toThrow('connection reset');
   });
 
-  it('passes trimmed values as parameters, never concatenated into the SQL text', async () => {
+  it('passes the status and id as parameters, never concatenated into the SQL text', async () => {
     const { updateRsvp, sql } = await withMockedSql(async () => [
-      { id: 1, name: 'Bucky', email: 'bucky@wisc.edu', meeting: 'kickoff', created_at: '2026-07-01T00:00:00.000Z' },
+      { id: 1, name: 'Bucky', email: 'bucky@wisc.edu', meeting: 'kickoff', status: 'present', created_at: '2026-07-01T00:00:00.000Z' },
     ]);
     await updateRsvp(1, editInput);
     const [strings, ...values] = sql.mock.calls[0] as [TemplateStringsArray, ...unknown[]];
-    expect(values).toEqual(['Bucky', 'bucky@wisc.edu', 1]);
-    expect(strings.join('')).not.toContain('bucky@wisc.edu');
+    expect(values).toEqual(['present', 1]);
+    expect(strings.join('')).not.toContain('present');
   });
 });
 
