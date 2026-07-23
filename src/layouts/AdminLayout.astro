@@ -68,7 +68,7 @@ const icons: Record<AdminLink['icon'], string> = {
               </svg>
               {l.label}
               <span
-                id={l.icon === 'submissions' ? 'nav-submissions-count' : undefined}
+                id={l.icon === 'submissions' ? 'nav-submissions-count' : l.icon === 'rsvps' ? 'nav-rsvps-count' : undefined}
                 class:list={[
                   'ml-auto grid h-5 min-w-[22px] place-items-center rounded-full px-1.5 text-xs font-bold',
                   l.active ? 'bg-primary text-primary-foreground' : 'bg-black/[0.06] text-muted-foreground',
@@ -92,6 +92,15 @@ const icons: Record<AdminLink['icon'], string> = {
           const unread = document.querySelectorAll('tr[data-id][data-read="false"]').length;
           submissionsBadge.textContent = String(unread);
           submissionsBadge.classList.toggle('hidden', unread === 0);
+        });
+      }
+
+      const rsvpsBadge = document.getElementById('nav-rsvps-count');
+      if (rsvpsBadge) {
+        document.addEventListener('rsvps:changed', () => {
+          const total = document.querySelectorAll('tr[data-rsvp-id]').length;
+          rsvpsBadge.textContent = String(total);
+          rsvpsBadge.classList.toggle('hidden', total === 0);
         });
       }
     </script>

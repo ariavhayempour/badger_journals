@@ -1,8 +1,12 @@
 import { sql } from './client';
-import type { RsvpInput } from '../lib/rsvp-validation';
+import type { RsvpEditInput, RsvpInput } from '../lib/rsvp-validation';
 import type { RsvpRow } from './schema';
 
 export type InsertRsvpResult = { status: 'ok' } | { status: 'duplicate' };
+export type UpdateRsvpResult =
+  | { status: 'ok'; rsvp: RsvpRow }
+  | { status: 'duplicate' }
+  | { status: 'not_found' };
 
 // Newest first so groupRsvpsByMeeting can rank meetings and rows by recency.
 export async function listRsvps(): Promise<RsvpRow[]> {
@@ -25,6 +29,26 @@ export async function insertRsvp(input: RsvpInput): Promise<InsertRsvpResult> {
     if (isUniqueViolation(err)) return { status: 'duplicate' };
     throw err;
   }
+}
+
+// Admin edit: name/email only, no meeting reassignment (see docs/claude/0008-rsvp.md).
+export async function updateRsvp(id: number, input: RsvpEditInput): Promise<UpdateRsvpResult> {
+  try {
+    const rows = (await sql`
+      UPDATE rsvps
+      SET name = ${input.name.trim()}, email = ${input.email.trim()}
+      WHERE id = ${id}
+      RETURNING id, name, email, meeting, created_at
+    `) as RsvpRow[];
+    return rows[0] ? { status: 'ok', rsvp: rows[0] } : { status: 'not_found' };
+  } catch (err) {
+    if (isUniqueViolation(err)) return { status: 'duplicate' };
+    throw err;
+  }
+}
+
+export async function deleteRsvp(id: number): Promise<void> {
+  await sql`DELETE FROM rsvps WHERE id = ${id}`;
 }
 
 function isUniqueViolation(err: unknown): boolean {

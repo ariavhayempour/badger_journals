@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
-import { validateRsvp, type RsvpInput } from '../src/lib/rsvp-validation';
+import { validateRsvp, validateRsvpEdit, type RsvpInput } from '../src/lib/rsvp-validation';
 import RsvpForm from '../src/components/RsvpForm.astro';
 
 const valid: RsvpInput = { name: 'Bucky Badger', email: 'bucky@wisc.edu', meeting: '2026-09-12-kickoff' };
@@ -56,17 +56,38 @@ describe('validateRsvp — valid input', () => {
   });
 });
 
+describe('validateRsvpEdit', () => {
+  const editValid = { name: 'Bucky Badger', email: 'bucky@wisc.edu' };
+
+  it('returns no errors for valid edit input', () => {
+    expect(validateRsvpEdit(editValid)).toEqual([]);
+  });
+
+  it('flags an empty name', () => {
+    expect(validateRsvpEdit({ ...editValid, name: '' }).map((e) => e.field)).toContain('name');
+  });
+
+  it('rejects a non-wisc email', () => {
+    expect(validateRsvpEdit({ ...editValid, email: 'foo@gmail.com' }).map((e) => e.field)).toContain('email');
+  });
+
+  it('never flags meeting, since edits cannot reassign it', () => {
+    const errors = validateRsvpEdit({ name: '', email: 'foo@gmail.com' });
+    expect(errors.map((e) => e.field)).not.toContain('meeting');
+  });
+});
+
 // --- insertRsvp DB helper (client mocked, no live DB) ---
 
 type SqlImpl = (strings: TemplateStringsArray, ...values: unknown[]) => Promise<unknown>;
 
-// Load insertRsvp with src/db/client's `sql` replaced by a spy, so no real DB is touched.
+// Load src/db/rsvp with src/db/client's `sql` replaced by a spy, so no real DB is touched.
 async function withMockedSql(impl: SqlImpl) {
   vi.resetModules();
   const sql = vi.fn(impl);
   vi.doMock('../src/db/client', () => ({ sql }));
-  const { insertRsvp } = await import('../src/db/rsvp');
-  return { insertRsvp, sql };
+  const rsvpDb = await import('../src/db/rsvp');
+  return { ...rsvpDb, sql };
 }
 
 afterEach(() => {
@@ -104,6 +125,70 @@ describe('insertRsvp', () => {
     const [strings, ...values] = sql.mock.calls[0] as [TemplateStringsArray, ...unknown[]];
     expect(values).toEqual([input.name, input.email, input.meeting]);
     expect(strings.join('')).not.toContain(input.email);
+  });
+});
+
+// --- updateRsvp DB helper ---
+
+const editInput = { name: '  Bucky  ', email: '  bucky@wisc.edu  ' };
+
+describe('updateRsvp', () => {
+  it('returns the updated row on success', async () => {
+    const row = { id: 1, name: 'Bucky', email: 'bucky@wisc.edu', meeting: 'kickoff', created_at: '2026-07-01T00:00:00.000Z' };
+    const { updateRsvp } = await withMockedSql(async () => [row]);
+    expect(await updateRsvp(1, editInput)).toEqual({ status: 'ok', rsvp: row });
+  });
+
+  it('returns not_found when no row matches the id', async () => {
+    const { updateRsvp } = await withMockedSql(async () => []);
+    expect(await updateRsvp(999, editInput)).toEqual({ status: 'not_found' });
+  });
+
+  it('maps a 23505 unique-violation to duplicate', async () => {
+    const { updateRsvp } = await withMockedSql(async () => {
+      throw Object.assign(new Error('duplicate key'), { code: '23505' });
+    });
+    expect(await updateRsvp(1, editInput)).toEqual({ status: 'duplicate' });
+  });
+
+  it('propagates any non-unique-violation error', async () => {
+    const { updateRsvp } = await withMockedSql(async () => {
+      throw Object.assign(new Error('connection reset'), { code: '08006' });
+    });
+    await expect(updateRsvp(1, editInput)).rejects.toThrow('connection reset');
+  });
+
+  it('passes trimmed values as parameters, never concatenated into the SQL text', async () => {
+    const { updateRsvp, sql } = await withMockedSql(async () => [
+      { id: 1, name: 'Bucky', email: 'bucky@wisc.edu', meeting: 'kickoff', created_at: '2026-07-01T00:00:00.000Z' },
+    ]);
+    await updateRsvp(1, editInput);
+    const [strings, ...values] = sql.mock.calls[0] as [TemplateStringsArray, ...unknown[]];
+    expect(values).toEqual(['Bucky', 'bucky@wisc.edu', 1]);
+    expect(strings.join('')).not.toContain('bucky@wisc.edu');
+  });
+});
+
+// --- deleteRsvp DB helper ---
+
+describe('deleteRsvp', () => {
+  it('resolves void on a successful delete', async () => {
+    const { deleteRsvp } = await withMockedSql(async () => []);
+    await expect(deleteRsvp(1)).resolves.toBeUndefined();
+  });
+
+  it('propagates any error from the delete', async () => {
+    const { deleteRsvp } = await withMockedSql(async () => {
+      throw new Error('connection reset');
+    });
+    await expect(deleteRsvp(1)).rejects.toThrow('connection reset');
+  });
+
+  it('passes the id as a parameter, never concatenated into the SQL text', async () => {
+    const { deleteRsvp, sql } = await withMockedSql(async () => []);
+    await deleteRsvp(42);
+    const [, ...values] = sql.mock.calls[0] as [TemplateStringsArray, ...unknown[]];
+    expect(values).toEqual([42]);
   });
 });
 
