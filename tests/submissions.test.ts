@@ -94,6 +94,7 @@ async function withMockedSql(impl: SqlImpl) {
 afterEach(() => {
   vi.doUnmock('../src/db/client');
   vi.doUnmock('../src/db/submission');
+  vi.doUnmock('../src/db/rate-limit');
   vi.resetModules();
 });
 
@@ -128,18 +129,24 @@ describe('insertSubmission', () => {
 
 // --- POST /api/inquiry route (insertSubmission mocked) ---
 
-// Load the route with insertSubmission replaced, then POST the given raw body string.
-async function postInquiry(rawBody: string, insertImpl?: (i: SubmissionInput) => Promise<void>) {
+// Load the route with insertSubmission and the rate limiter replaced, then POST the given raw body.
+async function postInquiry(
+  rawBody: string,
+  insertImpl?: (i: SubmissionInput) => Promise<void>,
+  rateLimit: () => Promise<number> = async () => 1,
+) {
   vi.resetModules();
   const insertSubmission = vi.fn(insertImpl ?? (async () => undefined));
   vi.doMock('../src/db/submission', () => ({ insertSubmission }));
+  const hitRateLimit = vi.fn(rateLimit);
+  vi.doMock('../src/db/rate-limit', () => ({ hitRateLimit }));
   const { POST } = await import('../src/pages/api/inquiry');
   const request = new Request('http://localhost/api/inquiry', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: rawBody,
   });
-  const res = await POST({ request } as never);
+  const res = await POST({ request, clientAddress: '1.2.3.4' } as never);
   return { res, insertSubmission };
 }
 
@@ -183,6 +190,13 @@ describe('POST /api/inquiry', () => {
     expect(body.errors.map((e: { field: string }) => e.field)).toEqual(
       expect.arrayContaining(['name', 'email', 'message']),
     );
+    expect(insertSubmission).not.toHaveBeenCalled();
+  });
+
+  it('returns 429 rate_limited when over the limit and does not insert', async () => {
+    const { res, insertSubmission } = await postInquiry(JSON.stringify(valid), undefined, async () => 6);
+    expect(res.status).toBe(429);
+    expect(await res.json()).toEqual({ ok: false, code: 'rate_limited' });
     expect(insertSubmission).not.toHaveBeenCalled();
   });
 });
@@ -238,6 +252,16 @@ describe('InquiryForm.astro', () => {
     expect(a).toContain('inquiry');
     expect(b).toContain('join');
     expect(a).not.toMatch(/id="[^"]*-join"/);
+  });
+
+  it('includes a hidden honeypot field kept out of the a11y tree and tab order', async () => {
+    const html = await renderForm('inquiry');
+    const field = /<input[^>]*name="company"[^>]*>/.exec(html);
+    expect(field, 'honeypot input').not.toBeNull();
+    const tag = field![0];
+    expect(tag).toMatch(/aria-hidden="true"/);
+    expect(tag).toMatch(/tabindex="-1"/);
+    expect(tag).toMatch(/autocomplete="off"/);
   });
 });
 
