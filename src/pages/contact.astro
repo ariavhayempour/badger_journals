@@ -1,6 +1,7 @@
 ---
 export const prerender = true;
 import BaseLayout from '../layouts/BaseLayout.astro';
+import InquiryForm from '../components/InquiryForm.astro';
 ---
 <BaseLayout
   title="Contact Us"
@@ -15,10 +16,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       Interested in joining Badger Journals? Reach out and we'll be in touch about how
       to get involved.
     </p>
+    <InquiryForm type="inquiry" />
   </section>
 
   <section>
     <h2>Start a New Digest</h2>
-    <p>Want to launch a new Badger Journals digest? Let us know.</p>
+    <p>
+      Want to launch a new Badger Journals digest?
+      <a href="/create-next-digest">Start a new digest →</a>
+    </p>
   </section>
 </BaseLayout>

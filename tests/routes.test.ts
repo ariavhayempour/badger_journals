@@ -42,11 +42,32 @@ describe('static route rendering', () => {
   });
 });
 
-describe('contact page (forms deferred to 0008/0009)', () => {
-  it('renders both sections without any form elements', async () => {
+describe('contact page inquiry form', () => {
+  it('renders both sections with an inquiry form posting to /api/inquiry', async () => {
     const html = await render(Contact);
     expect(html).toContain('Get Involved');
     expect(html).toContain('Start a New Digest');
-    expect(html).not.toMatch(/<form|<input|<textarea/);
+    expect(html).toMatch(/<form[^>]*action="\/api\/inquiry"/);
+    expect(html).toMatch(/<input[^>]*type="hidden"[^>]*name="type"[^>]*value="inquiry"/);
+  });
+
+  it('keeps "Start a New Digest" as a link to the digest page, not a second form', async () => {
+    const html = await render(Contact);
+    expect(html).toMatch(/href="\/create-next-digest"/);
+    expect((html.match(/<form/g) ?? []).length).toBe(1);
+  });
+});
+
+describe('team + create-next-digest inquiry forms', () => {
+  it('team page renders a join form posting to /api/inquiry', async () => {
+    const html = await render(Team);
+    expect(html).toMatch(/<form[^>]*action="\/api\/inquiry"/);
+    expect(html).toMatch(/<input[^>]*type="hidden"[^>]*name="type"[^>]*value="join"/);
+  });
+
+  it('create-next-digest page renders a digest form posting to /api/inquiry', async () => {
+    const html = await render(CreateNextDigest);
+    expect(html).toMatch(/<form[^>]*action="\/api\/inquiry"/);
+    expect(html).toMatch(/<input[^>]*type="hidden"[^>]*name="type"[^>]*value="digest"/);
   });
 });
