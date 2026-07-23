@@ -20,8 +20,9 @@ Rebuild the club's legacy single-file `index.html` as a componentized Astro (SSR
 | [0010](0010.md) | Spam + abuse protection on submission endpoints | 5 | Med | 0008, 0009 |
 | [0011](0011.md) | Admin authentication | 5 | **Low** | 0001 |
 | [0012](0012.md) | Admin dashboard (RSVPs + inquiry inbox) | 3 | Med | 0006, 0008, 0009, 0011 |
+| [0013](0013.md) | Manage calendar events from the admin dashboard | 8 | Med | 0006, 0007, 0011 |
 
-**Total ≈ 50 points.** No story reached the 8-point mandatory-decomposition threshold; each is independently shippable.
+**Total ≈ 58 points.** 0013 reached the 8-point mandatory-decomposition threshold; a two-story split (data/public backing vs. admin CRUD UI) was identified but the story was kept as one unit by request.
 
 ## Risk hotspot
 

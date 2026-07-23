@@ -1,0 +1,69 @@
+---
+import type { MeetingGroup } from '../lib/rsvp-grouping';
+
+interface Props {
+  groups: MeetingGroup[];
+}
+const { groups } = Astro.props;
+
+const formatTimestamp = (iso: string): string =>
+  new Date(iso).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+---
+{
+  groups.length === 0 ? (
+    <p class="empty">No RSVPs yet.</p>
+  ) : (
+    groups.map((group) => (
+      <section class="meeting">
+        <h3 class="meeting__title">{group.meeting}</h3>
+        <table class="meeting__table">
+          <thead>
+            <tr>
+              <th scope="col">Name</th>
+              <th scope="col">Email</th>
+              <th scope="col">RSVP'd</th>
+            </tr>
+          </thead>
+          <tbody>
+            {group.rsvps.map((rsvp) => (
+              <tr>
+                <td>{rsvp.name}</td>
+                <td>{rsvp.email}</td>
+                <td>{formatTimestamp(rsvp.created_at)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+    ))
+  )
+}
+
+<style>
+  .empty {
+    margin: 0;
+    color: var(--color-ink);
+    font-style: italic;
+  }
+  .meeting {
+    margin-bottom: var(--space-8);
+  }
+  .meeting__title {
+    margin: 0 0 var(--space-3);
+    font-size: var(--step-1);
+  }
+  .meeting__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--step-0);
+  }
+  .meeting__table th,
+  .meeting__table td {
+    padding: var(--space-3);
+    text-align: left;
+    border-bottom: 1px solid var(--color-rule);
+  }
+  .meeting__table th {
+    font-weight: 600;
+  }
+</style>

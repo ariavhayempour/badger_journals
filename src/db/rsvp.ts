@@ -1,7 +1,17 @@
 import { sql } from './client';
 import type { RsvpInput } from '../lib/rsvp-validation';
+import type { RsvpRow } from './schema';
 
 export type InsertRsvpResult = { status: 'ok' } | { status: 'duplicate' };
+
+// Newest first so groupRsvpsByMeeting can rank meetings and rows by recency.
+export async function listRsvps(): Promise<RsvpRow[]> {
+  return (await sql`
+    SELECT id, name, email, meeting, created_at
+    FROM rsvps
+    ORDER BY created_at DESC
+  `) as RsvpRow[];
+}
 
 // Postgres unique_violation — the (email, meeting) constraint is the race arbiter.
 const UNIQUE_VIOLATION = '23505';
