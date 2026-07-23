@@ -106,7 +106,7 @@ const eventCountOn = (iso: string): number => events.filter((e) => e.date === is
             }
             return (
               <a
-                href={`/meetings?month=${monthParam(year, month)}#d-${cell.iso}`}
+                href={`#d-${cell.iso}`}
                 class:list={[
                   base,
                   'relative font-semibold text-foreground transition-colors hover:bg-cream',
@@ -158,7 +158,16 @@ const eventCountOn = (iso: string): number => events.filter((e) => e.date === is
                         {isPast ? (
                           <p class="mt-2 text-sm text-muted-foreground">This meeting has passed.</p>
                         ) : (
-                          <RsvpForm meeting={m.id} />
+                          <details class="group mt-4">
+                            <summary class="event-toggle inline-flex cursor-pointer select-none items-center gap-1.5 rounded-full border border-primary px-4 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary hover:text-primary-foreground">
+                              <span class="group-open:hidden">RSVP</span>
+                              <span class="hidden group-open:inline">Hide RSVP</span>
+                              <svg class="h-3 w-3 shrink-0 transition-transform duration-200 group-open:rotate-180" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                                <path d="M2.5 4.5 6 8l3.5-3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                              </svg>
+                            </summary>
+                            <RsvpForm meeting={m.id} />
+                          </details>
                         )}
                       </div>
                     ))}
@@ -184,3 +193,39 @@ const eventCountOn = (iso: string): number => events.filter((e) => e.date === is
     </div>
   </div>
 </BaseLayout>
+
+<style>
+  /* Removes both engines' native disclosure triangle so the pill button is the only affordance. */
+  summary.event-toggle {
+    list-style: none;
+  }
+  summary.event-toggle::-webkit-details-marker {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    details[open] > form.rsvp {
+      animation: rsvp-reveal 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+
+  @keyframes rsvp-reveal {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    summary.event-toggle svg {
+      transition: none;
+    }
+  }
+</style>
