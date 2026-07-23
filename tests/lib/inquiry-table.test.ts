@@ -15,6 +15,7 @@ const sample: SubmissionRow = {
   submission_type: 'inquiry',
   message: 'When is the next meeting?',
   created_at: '2026-07-10T15:30:00.000Z',
+  is_read: false,
 };
 
 describe('InquiryTable', () => {

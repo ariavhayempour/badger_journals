@@ -5,7 +5,7 @@ import type { SubmissionRow } from './schema';
 // Newest first — backed by submissions_created_at_idx (created_at DESC).
 export async function listSubmissions(): Promise<SubmissionRow[]> {
   return (await sql`
-    SELECT id, name, email, submission_type, message, created_at
+    SELECT id, name, email, submission_type, message, is_read, created_at
     FROM submissions
     ORDER BY created_at DESC
   `) as SubmissionRow[];
@@ -15,4 +15,12 @@ export async function listSubmissions(): Promise<SubmissionRow[]> {
 export async function insertSubmission(input: SubmissionInput): Promise<void> {
   await sql`INSERT INTO submissions (name, email, submission_type, message)
             VALUES (${input.name.trim()}, ${input.email.trim()}, ${input.type}, ${input.message.trim()})`;
+}
+
+export async function markSubmissionRead(id: number): Promise<void> {
+  await sql`UPDATE submissions SET is_read = true WHERE id = ${id}`;
+}
+
+export async function deleteSubmission(id: number): Promise<void> {
+  await sql`DELETE FROM submissions WHERE id = ${id}`;
 }
