@@ -11,37 +11,39 @@ const nameErrId = `rsvp-name-err-${meeting}`;
 const emailErrId = `rsvp-email-err-${meeting}`;
 const statusId = `rsvp-status-${meeting}`;
 const dialogId = `rsvp-dialog-${meeting}`;
----
-<form class="rsvp" method="post" action="/api/rsvp" novalidate data-rsvp data-meeting={meeting}>
-  <p class="rsvp__legend">RSVP for this meeting</p>
 
-  <div class="rsvp__field">
-    <label for={nameId}>Name</label>
-    <input id={nameId} name="name" type="text" autocomplete="name" required maxlength={MAX_NAME} aria-describedby={nameErrId} />
-    <p class="rsvp__error" id={nameErrId} data-error-for="name" hidden></p>
+const field = 'h-10 w-full rounded-lg border border-input bg-background px-3 text-sm shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-[invalid=true]:border-destructive aria-[invalid=true]:ring-destructive/20';
+---
+<form class="rsvp mt-4 grid gap-4 rounded-2xl border border-border bg-card p-6" method="post" action="/api/rsvp" novalidate data-rsvp data-meeting={meeting}>
+  <p class="font-serif text-lg font-semibold">RSVP for this meeting</p>
+
+  <div class="grid gap-1.5">
+    <label for={nameId} class="text-sm font-medium">Name</label>
+    <input id={nameId} name="name" type="text" autocomplete="name" required maxlength={MAX_NAME} aria-describedby={nameErrId} class={field} />
+    <p class="text-sm text-destructive" id={nameErrId} data-error-for="name" hidden></p>
   </div>
 
-  <div class="rsvp__field">
-    <label for={emailId}>Email (@wisc.edu)</label>
-    <input id={emailId} name="email" type="email" autocomplete="email" required maxlength={MAX_EMAIL} aria-describedby={emailErrId} />
-    <p class="rsvp__error" id={emailErrId} data-error-for="email" hidden></p>
+  <div class="grid gap-1.5">
+    <label for={emailId} class="text-sm font-medium">Email (@wisc.edu)</label>
+    <input id={emailId} name="email" type="email" autocomplete="email" required maxlength={MAX_EMAIL} aria-describedby={emailErrId} class={field} />
+    <p class="text-sm text-destructive" id={emailErrId} data-error-for="email" hidden></p>
   </div>
 
   <input type="hidden" name="meeting" value={meeting} />
 
-  <div class="rsvp__hp" aria-hidden="true">
+  <div class="absolute -left-[9999px] h-px w-px overflow-hidden" aria-hidden="true">
     <input type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true" />
   </div>
 
-  <button type="submit">RSVP</button>
+  <button type="submit" class="inline-flex h-10 w-fit items-center justify-center rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-progress disabled:opacity-60">RSVP</button>
 
-  <p class="rsvp__status" id={statusId} role="status" aria-live="polite" data-status hidden></p>
+  <p class="rsvp-status m-0 text-sm font-medium" id={statusId} role="status" aria-live="polite" data-status hidden></p>
 
-  <div class="rsvp__modal" id={dialogId} role="dialog" aria-modal="true" aria-labelledby={`${dialogId}-title`} data-modal hidden>
-    <div class="rsvp__modal-card">
-      <h2 id={`${dialogId}-title`}>You're already registered</h2>
-      <p>This email has already RSVP'd for this meeting.</p>
-      <button type="button" data-modal-close>Close</button>
+  <div class="fixed inset-0 z-50 grid place-items-center bg-black/50 p-6" id={dialogId} role="dialog" aria-modal="true" aria-labelledby={`${dialogId}-title`} data-modal hidden>
+    <div class="max-w-sm rounded-2xl border border-border bg-card p-6 shadow-xl">
+      <h2 id={`${dialogId}-title`} class="font-serif text-xl font-bold">You're already registered</h2>
+      <p class="mt-2 text-muted-foreground">This email has already RSVP'd for this meeting.</p>
+      <button type="button" data-modal-close class="mt-4 inline-flex h-10 items-center justify-center rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90">Close</button>
     </div>
   </div>
 </form>
@@ -172,107 +174,6 @@ const dialogId = `rsvp-dialog-${meeting}`;
 </script>
 
 <style>
-  .rsvp {
-    display: grid;
-    gap: var(--space-4);
-    margin-top: var(--space-4);
-    padding: var(--space-4) var(--space-6);
-    background: var(--color-paper);
-    border: 1px solid var(--color-rule);
-    border-radius: var(--radius);
-  }
-  .rsvp__legend {
-    margin: 0;
-    font-family: var(--font-display);
-    font-size: var(--step-1);
-  }
-  .rsvp__field {
-    display: grid;
-    gap: var(--space-3);
-  }
-  .rsvp__hp {
-    position: absolute;
-    left: -9999px;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-  }
-  .rsvp__field label {
-    font-weight: 500;
-  }
-  .rsvp__field input {
-    padding: var(--space-3);
-    font: inherit;
-    color: var(--color-ink);
-    background: var(--color-paper);
-    border: 1px solid var(--color-rule);
-    border-radius: var(--radius);
-  }
-  .rsvp__field input:focus-visible {
-    outline: 2px solid var(--color-cardinal);
-    outline-offset: 2px;
-  }
-  .rsvp__field input[aria-invalid='true'] {
-    border-color: var(--color-cardinal);
-  }
-  .rsvp__error {
-    margin: 0;
-    color: var(--color-cardinal-dark);
-    font-size: var(--step-0);
-  }
-  .rsvp button[type='submit'] {
-    justify-self: start;
-    padding: var(--space-3) var(--space-6);
-    color: var(--color-paper);
-    background: var(--color-cardinal);
-    border: 1px solid transparent;
-    border-radius: var(--radius);
-    cursor: pointer;
-  }
-  .rsvp button[type='submit']:hover {
-    background: var(--color-cardinal-dark);
-    color: var(--color-paper);
-  }
-  .rsvp button[type='submit']:disabled {
-    opacity: 0.6;
-    cursor: progress;
-  }
-  .rsvp__status {
-    margin: 0;
-    font-weight: 500;
-  }
-  .rsvp__status[data-tone='ok'] {
-    color: var(--color-cardinal-dark);
-  }
-  .rsvp__status[data-tone='error'] {
-    color: var(--color-cardinal);
-  }
-  .rsvp__modal {
-    position: fixed;
-    inset: 0;
-    display: grid;
-    place-items: center;
-    padding: var(--space-6);
-    background: rgb(0 0 0 / 0.5);
-    z-index: 10;
-  }
-  .rsvp__modal-card {
-    max-width: 24rem;
-    padding: var(--space-6);
-    background: var(--color-paper);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-1);
-  }
-  .rsvp__modal-card h2 {
-    margin-top: 0;
-  }
-  .rsvp__modal-card button {
-    margin-top: var(--space-4);
-    padding: var(--space-3) var(--space-6);
-    color: var(--color-paper);
-    background: var(--color-cardinal);
-    border: 1px solid transparent;
-    border-radius: var(--radius);
-    cursor: pointer;
-  }
+  .rsvp-status[data-tone='ok'] { color: var(--cardinal-700); }
+  .rsvp-status[data-tone='error'] { color: var(--destructive); }
 </style>

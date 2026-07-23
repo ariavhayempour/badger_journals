@@ -1,7 +1,6 @@
 import { sql } from './client';
 
-// Atomic fixed-window increment: one round-trip decides allow/deny under concurrency.
-// Returns the new count for this key.
+// Atomic fixed-window increment: one round-trip decides allow/deny under concurrency, returning the key's new count.
 export async function hitRateLimit(key: string, windowStart: string, expiresAt: string): Promise<number> {
   await pruneExpired();
   const rows = (await sql`

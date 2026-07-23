@@ -16,8 +16,7 @@ export async function listRsvps(): Promise<RsvpRow[]> {
 // Postgres unique_violation — the (email, meeting) constraint is the race arbiter.
 const UNIQUE_VIOLATION = '23505';
 
-// Insert-and-catch rather than check-then-insert, so concurrent RSVPs can't slip
-// between a existence check and the write.
+// Insert-and-catch rather than check-then-insert, so concurrent RSVPs can't slip between an existence check and the write.
 export async function insertRsvp(input: RsvpInput): Promise<InsertRsvpResult> {
   try {
     await sql`INSERT INTO rsvps (name, email, meeting) VALUES (${input.name.trim()}, ${input.email.trim()}, ${input.meeting})`;

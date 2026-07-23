@@ -2,8 +2,11 @@
 // Per-request SSR; the /admin gate (middleware) covers GET and POST — no in-page auth check.
 export const prerender = false;
 import AdminLayout from '../../../layouts/AdminLayout.astro';
+import PageHeader from '../../../components/admin/PageHeader.astro';
+import Panel from '../../../components/admin/Panel.astro';
 import EventForm from '../../../components/EventForm.astro';
 import { listEvents, insertEvent, deleteEvent } from '../../../db/event';
+import { listRsvps } from '../../../db/rsvp';
 import { validateEvent, type EventFieldError, type EventInput } from '../../../lib/event-validation';
 
 let errors: EventFieldError[] = [];
@@ -35,78 +38,61 @@ if (Astro.request.method === 'POST') {
   }
 }
 
-const events = await listEvents();
+const [events, rsvps] = await Promise.all([listEvents(), listRsvps()]);
+const counts = rsvps.reduce<Record<string, number>>((acc, r) => {
+  acc[r.meeting] = (acc[r.meeting] ?? 0) + 1;
+  return acc;
+}, {});
+const dateFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+const fmtDate = (iso: string) => dateFmt.format(new Date(iso));
+const th = 'border-b border-border/60 bg-muted/40 px-5 py-3 text-left text-[0.7rem] font-bold tracking-[0.08em] text-muted-foreground uppercase';
+const td = 'border-b border-border/50 px-5 py-3.5 align-middle';
 ---
 <AdminLayout title="Events">
-  <h1>Events</h1>
+  <PageHeader title="Events" subtitle="Create meetings and manage the schedule. Editing an event is where you can also delete it." />
 
-  <section aria-labelledby="add-event-heading">
-    <h2 id="add-event-heading">Add an event</h2>
-    <EventForm action="/admin/events" actionValue="create" submitLabel="Create event" values={values} errors={errors} />
-  </section>
+  <Panel title="Add an event">
+    <div class="p-5">
+      <EventForm action="/admin/events" actionValue="create" submitLabel="Create event" values={values} errors={errors} />
+    </div>
+  </Panel>
 
-  <section aria-labelledby="all-events-heading">
-    <h2 id="all-events-heading">All events</h2>
+  <Panel title="All events" count={`${events.length} total`}>
     {events.length === 0 ? (
-      <p class="empty">No events yet. Add one above.</p>
+      <p class="px-5 py-8 text-muted-foreground">No events yet. Add one above.</p>
     ) : (
-      <ul class="event-list">
-        {events.map((e) => (
-          <li>
-            <time datetime={e.date}>{e.date}</time>
-            {e.title && <span class="event-list__title">{e.title}</span>}
-            <a href={`/admin/events/${e.id}`}>Edit</a>
-            <form method="post" action="/admin/events" class="event-list__delete" onsubmit="return confirm('Delete this event? This also removes its RSVPs.')">
-              <input type="hidden" name="_action" value="delete" />
-              <input type="hidden" name="id" value={e.id} />
-              <button type="submit">Delete</button>
-            </form>
-          </li>
-        ))}
-      </ul>
+      <div class="overflow-x-auto">
+        <table class="w-full border-collapse text-sm">
+          <thead>
+            <tr>
+              <th scope="col" class={th}>Date</th>
+              <th scope="col" class={th}>Title</th>
+              <th scope="col" class={th}>Time</th>
+              <th scope="col" class={th}>Location</th>
+              <th scope="col" class={th}>RSVPs</th>
+              <th scope="col" class={`${th} text-right`}>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {events.map((e) => (
+              <tr class="transition-colors hover:bg-muted/40">
+                <td class={`${td} font-serif font-semibold whitespace-nowrap tabular-nums`}><time datetime={e.date}>{fmtDate(e.date)}</time></td>
+                <td class={`${td} font-semibold`}>{e.title ?? <span class="font-normal text-muted-foreground">Untitled</span>}</td>
+                <td class={`${td} whitespace-nowrap text-muted-foreground`}>{e.time ?? '—'}</td>
+                <td class={`${td} text-muted-foreground`}>{e.location ?? '—'}</td>
+                <td class={td}>
+                  <span class="inline-flex items-center gap-1.5 font-semibold">
+                    <span class="size-1.5 rounded-full bg-primary"></span>{counts[e.slug] ?? 0}
+                  </span>
+                </td>
+                <td class={`${td} text-right`}>
+                  <a href={`/admin/events/${e.id}`} class="inline-flex h-8 items-center rounded-md border border-border px-3 text-sm font-semibold transition-colors hover:border-primary/40 hover:text-primary">Edit</a>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     )}
-  </section>
+  </Panel>
 </AdminLayout>
-
-<style>
-  section {
-    margin-bottom: 2.5rem;
-  }
-  .event-list {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    display: grid;
-    gap: 0.5rem;
-  }
-  .event-list li {
-    display: flex;
-    align-items: baseline;
-    gap: 1rem;
-    padding: 0.75rem 1rem;
-    border: 1px solid var(--color-rule, #e5e5e5);
-    border-radius: var(--radius, 4px);
-  }
-  .event-list time {
-    font-variant-numeric: tabular-nums;
-    font-weight: 500;
-  }
-  .event-list__title {
-    flex: 1;
-  }
-  .event-list li:not(:has(.event-list__title)) a {
-    margin-left: auto;
-  }
-  .event-list__delete {
-    margin: 0;
-  }
-  .event-list__delete button {
-    padding: 0.35rem 0.75rem;
-    font: inherit;
-    color: var(--color-cardinal-dark, #9b0000);
-    background: transparent;
-    border: 1px solid currentColor;
-    border-radius: var(--radius, 4px);
-    cursor: pointer;
-  }
-</style>

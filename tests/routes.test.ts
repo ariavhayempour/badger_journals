@@ -7,10 +7,10 @@ import Contact from '../src/pages/contact.astro';
 
 // /meetings is now SSR, so it moved out of this fully-static set (docs/claude/0013-events-admin.md).
 const STATIC_PAGES = [
-  { name: 'mission', Comp: Mission, title: 'Mission · Badger Journals', h1: 'Mission' },
-  { name: 'team', Comp: Team, title: 'Our Team · Badger Journals', h1: 'Our Team' },
-  { name: 'create-next-digest', Comp: CreateNextDigest, title: 'Create the Next Digest · Badger Journals', h1: 'Create the Next Digest' },
-  { name: 'contact', Comp: Contact, title: 'Contact Us · Badger Journals', h1: 'Contact Us' },
+  { name: 'mission', Comp: Mission, title: 'Mission · Badger Journals', ogTitle: 'Mission', h1: 'Making scientific research accessible to everyone.' },
+  { name: 'team', Comp: Team, title: 'Our Team · Badger Journals', ogTitle: 'Our Team', h1: 'Built by Badgers.' },
+  { name: 'create-next-digest', Comp: CreateNextDigest, title: 'Create the Next Digest · Badger Journals', ogTitle: 'Create the Next Digest', h1: 'Create the next digest.' },
+  { name: 'contact', Comp: Contact, title: 'Contact Us · Badger Journals', ogTitle: 'Contact Us', h1: 'Get in touch.' },
 ];
 
 async function render(Comp: (typeof STATIC_PAGES)[number]['Comp']): Promise<string> {
@@ -23,8 +23,9 @@ describe('static route rendering', () => {
     it(`/${page.name} renders its own title, meta, and heading`, async () => {
       const html = await render(page.Comp);
       expect(html).toContain(`<title>${page.title}</title>`);
-      expect(html).toContain(`property="og:title" content="${page.h1}"`);
-      expect(html).toContain(`>${page.h1}</h1>`); // dev build injects data-astro-* attrs on <h1>
+      expect(html).toContain(`property="og:title" content="${page.ogTitle}"`);
+      const h1 = page.h1.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      expect(html).toMatch(new RegExp(`>\\s*${h1}\\s*</h1>`)); // heading text (whitespace-tolerant)
 
     });
   }
@@ -43,8 +44,8 @@ describe('static route rendering', () => {
 describe('contact page inquiry form', () => {
   it('renders both sections with an inquiry form posting to /api/inquiry', async () => {
     const html = await render(Contact);
-    expect(html).toContain('Get Involved');
-    expect(html).toContain('Start a New Digest');
+    expect(html).toContain('Get involved');
+    expect(html).toContain('Start a new digest');
     expect(html).toMatch(/<form[^>]*action="\/api\/inquiry"/);
     expect(html).toMatch(/<input[^>]*type="hidden"[^>]*name="type"[^>]*value="inquiry"/);
   });

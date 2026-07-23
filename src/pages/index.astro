@@ -1,72 +1,272 @@
 ---
-export const prerender = true;
+// Per-request SSR so the upcoming-meetings rail reflects the events table without a redeploy.
+export const prerender = false;
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { Image } from 'astro:assets';
 import campus from '../assets/images/campus.jpg';
+import { buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { team } from '../data/team';
+import { researchAreas } from '../data/research-areas';
+import { listEvents } from '../db/event';
+import { splitMeetings, type MeetingView } from '../lib/split-meetings';
+
+const rows = await listEvents();
+const view: MeetingView[] = rows.map((r) => ({
+  id: r.slug,
+  date: r.date,
+  title: r.title ?? undefined,
+  time: r.time ?? undefined,
+  location: r.location ?? undefined,
+}));
+const today = new Date().toISOString().slice(0, 10);
+const { upcoming } = splitMeetings(view, today);
+const nextMeetings = upcoming.slice(0, 3);
+
+const wk = new Intl.DateTimeFormat('en-US', { weekday: 'short', timeZone: 'UTC' });
+const mo = new Intl.DateTimeFormat('en-US', { month: 'short', timeZone: 'UTC' });
+const dy = new Intl.DateTimeFormat('en-US', { day: 'numeric', timeZone: 'UTC' });
+const parts = (iso: string) => {
+  const d = new Date(iso);
+  return { wk: wk.format(d), mo: mo.format(d), dy: dy.format(d) };
+};
+const detail = (m: MeetingView) => [m.time, m.location].filter(Boolean).join(' · ');
+
+// Flat roster for the marquee; drop unfilled placeholder slots.
+const members = team
+  .flatMap((g) => g.members)
+  .filter((m) => m.name !== 'TODO' && m.major !== 'TODO');
+const initials = (name: string) =>
+  name.split(/[\s&]+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
+const marquee = [...members, ...members]; // duplicated for a seamless loop
 ---
 <BaseLayout
   title="Badger Journals"
   description="A journal club dedicated to reading, discussing, and reviewing the latest scientific papers — making cutting-edge research accessible to everyone."
   path="/"
 >
-  <section class="hero">
+  <!-- Hero -->
+  <section class="relative isolate overflow-hidden text-white">
     <Image
-      class="hero-image"
+      class="absolute inset-0 -z-10 h-full w-full object-cover object-[center_40%]"
       src={campus}
-      alt="Students on the UW–Madison campus"
+      alt="Students on the UW–Madison campus at dusk"
       widths={[480, 800, 1200, 1650]}
-      sizes="(max-width: 60rem) 100vw, 60rem"
+      sizes="100vw"
       format="avif"
       loading="eager"
       fetchpriority="high"
     />
-    <h1>Badger Journals</h1>
-    <p>
-      A journal club dedicated to reading, discussing, and reviewing the latest
-      scientific papers — making cutting-edge research accessible to everyone.
-    </p>
+    <div class="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgb(20_8_8/0.18),rgb(15_4_4/0.55)_55%,rgb(90_3_6/0.82)),linear-gradient(90deg,rgb(15_4_4/0.62),rgb(15_4_4/0.05)_70%)]"></div>
+    <div class="mx-auto max-w-6xl px-6 pt-32 pb-16 sm:pt-40 sm:pb-20">
+      <p class="mb-6 flex items-center gap-3 text-xs font-bold tracking-[0.18em] text-[#ffd9d9] uppercase">
+        <span class="h-0.5 w-7 bg-[#ff9a9a]"></span>UW–Madison · Student journal club
+      </p>
+      <h1 class="max-w-[15ch] font-serif text-[clamp(2.9rem,7vw,5.5rem)] leading-[1.02] font-extrabold tracking-[-0.03em] text-balance">
+        Research made <em class="font-semibold italic">readable</em>.
+      </h1>
+      <p class="mt-6 max-w-[46ch] text-lg leading-relaxed text-white/90">
+        We read, discuss, and write about the latest scientific papers — turning dense
+        primary literature into digests any undergraduate can follow.
+      </p>
+      <div class="mt-9 flex flex-wrap items-center gap-4">
+        <a href="/meetings" class={cn(buttonVariants({ variant: 'default' }), 'h-12 px-6 text-base')}>
+          See upcoming meetings
+        </a>
+        <a
+          href="/create-next-digest"
+          class="inline-flex h-12 items-center rounded-lg border border-white/40 px-6 text-base font-medium text-white transition-colors hover:border-white hover:bg-white/10"
+        >
+          Browse digests →
+        </a>
+      </div>
+    </div>
   </section>
 
-  <section>
-    <h2>Mission</h2>
-    <p>
-      Badger Journals is a student-run organization dedicated to making scientific
-      research accessible to everyone. Through our journal clubs, we read, discuss,
-      and write about the latest discoveries across multiple fields of science.
-    </p>
-    <a href="/mission">Learn More</a>
+  <!-- Facts -->
+  <div class="mx-auto -mt-10 max-w-6xl px-6">
+    <dl class="grid grid-cols-2 overflow-hidden rounded-2xl border border-border bg-card shadow-[0_10px_30px_rgb(28_25_23/0.10)] lg:grid-cols-4">
+      {[
+        { n: '6', l: 'Research areas covered' },
+        { n: '20+', l: 'Student contributors' },
+        { n: 'Weekly', l: 'Journal club meetings' },
+        { n: 'All', l: 'Majors welcome' },
+      ].map((f, i) => (
+        <div class:list={['p-7', i > 0 && 'border-border sm:border-l', i >= 2 && 'lg:border-l', 'border-t sm:border-t-0', i < 2 && 'sm:border-t-0', i === 2 && 'sm:border-t lg:border-t-0']}>
+          <dt class="font-serif text-4xl leading-none font-bold tracking-tight text-primary">{f.n}</dt>
+          <dd class="mt-2 text-sm font-medium text-muted-foreground">{f.l}</dd>
+        </div>
+      ))}
+    </dl>
+  </div>
+
+  <!-- What we do -->
+  <section class="mx-auto grid max-w-6xl gap-14 px-6 py-20 lg:grid-cols-[1.1fr_1fr] lg:items-start">
+    <div>
+      <p class="mb-3 text-xs font-bold tracking-[0.14em] text-primary uppercase">What we do</p>
+      <h2 class="font-serif text-[clamp(1.9rem,3.4vw,2.8rem)] leading-[1.1] font-bold tracking-tight text-balance">
+        A journal club that turns papers into understanding.
+      </h2>
+      <p class="mt-5 max-w-[52ch] text-lg text-muted-foreground">
+        As an undergraduate, you're often thrown into research with little sense of how it
+        works. Badger Journals is where students learn to find, read, and clearly explain
+        primary literature — skills that carry into grad school, medicine, and industry.
+      </p>
+      <p class="mt-4 max-w-[52ch] text-lg text-muted-foreground">
+        Every week we pick a paper, break it down together, and publish a student-written
+        digest so the next reader gets there faster.
+      </p>
+    </div>
+    <ul class="grid gap-4">
+      {[
+        { n: '01', h: 'Read', p: 'Pick apart a recent paper as a group — methods, claims, and what actually holds up.' },
+        { n: '02', h: 'Discuss', p: 'Debate the findings in a friendly room where no question is too basic.' },
+        { n: '03', h: 'Write', p: 'Turn the discussion into a clear, accessible digest published under your name.' },
+      ].map((p) => (
+        <li class="grid grid-cols-[auto_1fr] gap-5 rounded-2xl border border-border bg-card p-6 transition-shadow hover:shadow-[0_10px_30px_rgb(28_25_23/0.08)]">
+          <span class="font-serif text-2xl leading-none font-bold text-primary">{p.n}</span>
+          <div>
+            <h3 class="font-serif text-xl font-bold">{p.h}</h3>
+            <p class="mt-1 text-muted-foreground">{p.p}</p>
+          </div>
+        </li>
+      ))}
+    </ul>
   </section>
 
-  <section>
-    <h2>Team</h2>
-    <p>
-      Badger Journals is built by passionate undergraduate students from across
-      UW-Madison. Our members develop real skills in scientific writing, critical
-      reading, and research communication while staying at the forefront of discovery.
+  <!-- Meetings preview -->
+  <div class="border-y border-border bg-canvas">
+    <section class="mx-auto max-w-6xl px-6 py-20">
+      <div class="mb-8 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h2 class="font-serif text-[clamp(1.9rem,3.4vw,2.8rem)] font-bold tracking-tight">Upcoming meetings</h2>
+          <p class="mt-2 max-w-[60ch] text-lg text-muted-foreground">
+            Drop in — no prep required. RSVP so we know to save you a seat.
+          </p>
+        </div>
+        <a href="/meetings" class={cn(buttonVariants({ variant: 'outline' }), 'h-10 px-4')}>All meetings →</a>
+      </div>
+      {nextMeetings.length > 0 ? (
+        <ul class="grid gap-4">
+          {nextMeetings.map((m) => {
+            const p = parts(m.date);
+            return (
+              <li class="grid grid-cols-[auto_1fr] items-center gap-6 rounded-2xl border border-border bg-card p-6 transition-shadow hover:shadow-[0_10px_30px_rgb(28_25_23/0.08)] sm:grid-cols-[120px_1fr_auto]">
+                <div class="border-r border-border pr-5 text-center">
+                  <div class="text-xs font-bold tracking-[0.1em] text-primary uppercase">{p.wk} · {p.mo}</div>
+                  <div class="font-serif text-3xl leading-none font-bold tabular-nums">{p.dy}</div>
+                </div>
+                <div class="min-w-0">
+                  {m.title && <p class="font-serif text-xl font-semibold">{m.title}</p>}
+                  {detail(m) && <p class="mt-0.5 text-muted-foreground">{detail(m)}</p>}
+                </div>
+                <a href="/meetings" class={cn(buttonVariants({ variant: 'default' }), 'col-span-2 h-10 w-full justify-center px-4 sm:col-span-1 sm:w-auto')}>RSVP</a>
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <p class="rounded-2xl border border-border bg-card p-8 text-lg text-muted-foreground">
+          Stay tuned for upcoming meetings — check back soon.
+        </p>
+      )}
+    </section>
+  </div>
+
+  <!-- Digests -->
+  <section class="mx-auto max-w-6xl px-6 py-20">
+    <h2 class="font-serif text-[clamp(1.9rem,3.4vw,2.8rem)] font-bold tracking-tight">Digests across the sciences</h2>
+    <p class="mt-2 mb-9 max-w-[60ch] text-lg text-muted-foreground">
+      Student-written reviews in the fields our members care about — with room for more.
     </p>
-    <a href="/team">Meet the Team</a>
+    <ul class="grid gap-5 [grid-template-columns:repeat(auto-fit,minmax(250px,1fr))]">
+      {researchAreas.slice(0, 3).map((a) => (
+        <li class="rounded-2xl border border-border bg-card p-7 transition-all hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgb(28_25_23/0.08)]">
+          <p class="mb-3 text-3xl" aria-hidden="true">{a.icon}</p>
+          <h3 class="font-serif text-xl font-bold">{a.title}</h3>
+          <p class="mt-2 text-muted-foreground">{a.description}</p>
+        </li>
+      ))}
+      <li class="rounded-2xl border border-primary/20 bg-cardinal-tint p-7">
+        <p class="mb-3 text-3xl" aria-hidden="true">✨</p>
+        <h3 class="font-serif text-xl font-bold">Your field</h3>
+        <p class="mt-2 text-cardinal-700">Passionate about an area not listed? Help us launch the next digest.</p>
+        <a href="/create-next-digest" class="mt-3 inline-block font-semibold text-primary hover:underline">Get started →</a>
+      </li>
+    </ul>
+  </section>
+
+  <!-- Team marquee -->
+  <div class="border-y border-border bg-canvas">
+    <section class="mx-auto max-w-6xl px-6 py-20">
+      <div class="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h2 class="font-serif text-[clamp(1.9rem,3.4vw,2.8rem)] font-bold tracking-tight">Built by Badgers</h2>
+          <p class="mt-2 max-w-[60ch] text-lg text-muted-foreground">
+            Undergraduates from across UW–Madison, learning to communicate science.
+          </p>
+        </div>
+        <a href="/team" class={cn(buttonVariants({ variant: 'outline' }), 'h-10 px-4')}>View the whole team →</a>
+      </div>
+      <div class="marquee mt-10">
+        <ul class="marquee-track">
+          {marquee.map((m, i) => (
+            <li class="w-[210px] shrink-0 rounded-2xl border border-border bg-card p-6 text-center" aria-hidden={i >= members.length ? 'true' : undefined}>
+              <span class="mx-auto mb-3 grid size-16 place-items-center rounded-full border border-border bg-cardinal-tint font-serif text-xl font-bold text-primary">{initials(m.name)}</span>
+              <p class="font-serif text-lg font-semibold leading-tight">{m.name}</p>
+              <p class="mt-1 text-sm font-semibold text-primary">{m.role}</p>
+              <p class="text-sm text-muted-foreground">{m.major}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  </div>
+
+  <!-- CTA -->
+  <section class="relative isolate overflow-hidden bg-cardinal-900 text-white">
+    <div class="absolute inset-0 -z-10 bg-[radial-gradient(120%_140%_at_85%_0%,var(--cardinal),transparent_60%)]"></div>
+    <div class="mx-auto grid max-w-6xl gap-6 px-6 py-20 lg:grid-cols-[1.4fr_auto] lg:items-center">
+      <div>
+        <h2 class="font-serif text-[clamp(2rem,4vw,3.1rem)] leading-tight font-bold tracking-tight">Start the next digest.</h2>
+        <p class="mt-3 max-w-[48ch] text-lg text-white/85">
+          Every area of science deserves accessible, student-written reviews. If you're
+          passionate about a field, we'll help you build it.
+        </p>
+      </div>
+      <a href="/create-next-digest" class="inline-flex h-12 items-center justify-center rounded-lg bg-white px-6 text-base font-semibold text-cardinal-900 transition-colors hover:bg-[#ffe9e9]">
+        Pitch a digest →
+      </a>
+    </div>
   </section>
 </BaseLayout>
+
 <style>
-  .hero {
-    text-align: center;
-    padding-block: var(--space-8);
+  .marquee {
+    overflow: hidden;
+    -webkit-mask: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+    mask: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
   }
-  .hero-image {
-    display: block;
-    width: 100%;
-    height: auto;
-    max-width: 60rem;
-    margin-inline: auto;
-    margin-block-end: var(--space-6);
-    border-radius: var(--radius);
+  .marquee-track {
+    display: flex;
+    gap: 1.25rem;
+    width: max-content;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    animation: marquee 44s linear infinite;
   }
-  .hero h1 {
-    font-size: var(--step-4);
+  @keyframes marquee {
+    to {
+      transform: translateX(-50%);
+    }
   }
-  .hero p {
-    max-width: 42rem;
-    margin-inline: auto;
-    font-size: var(--step-1);
+  @media (prefers-reduced-motion: reduce) {
+    .marquee {
+      overflow-x: auto;
+    }
+    .marquee-track {
+      animation: none;
+    }
   }
 </style>

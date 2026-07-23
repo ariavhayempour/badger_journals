@@ -8,22 +8,33 @@ import InquiryForm from '../components/InquiryForm.astro';
   description="Get involved with Badger Journals or propose a new digest."
   path="/contact"
 >
-  <h1>Contact Us</h1>
-
-  <section>
-    <h2>Get Involved</h2>
-    <p>
-      Interested in joining Badger Journals? Reach out and we'll be in touch about how
-      to get involved.
-    </p>
-    <InquiryForm type="inquiry" />
+  <section class="border-b border-border bg-cream">
+    <div class="mx-auto max-w-4xl px-6 py-16 sm:py-20">
+      <p class="mb-3 text-xs font-bold tracking-[0.14em] text-primary uppercase">Contact</p>
+      <h1 class="font-serif text-[clamp(2.4rem,5vw,3.6rem)] leading-[1.05] font-extrabold tracking-tight text-balance">
+        Get in touch.
+      </h1>
+    </div>
   </section>
 
-  <section>
-    <h2>Start a New Digest</h2>
-    <p>
-      Want to launch a new Badger Journals digest?
-      <a href="/create-next-digest">Start a new digest →</a>
-    </p>
-  </section>
+  <div class="mx-auto grid max-w-5xl gap-12 px-6 py-16 lg:grid-cols-[1.2fr_1fr] lg:items-start">
+    <section>
+      <h2 class="font-serif text-2xl font-bold tracking-tight">Get involved</h2>
+      <p class="mt-2 max-w-[52ch] text-lg text-muted-foreground">
+        Interested in joining Badger Journals? Reach out and we'll be in touch about how
+        to get involved.
+      </p>
+      <InquiryForm type="inquiry" />
+    </section>
+
+    <aside class="rounded-3xl border border-border bg-canvas p-8">
+      <h2 class="font-serif text-2xl font-bold tracking-tight">Start a new digest</h2>
+      <p class="mt-2 text-muted-foreground">
+        Want to launch a new Badger Journals digest in a field of science you care about?
+      </p>
+      <a href="/create-next-digest" class="mt-4 inline-block font-semibold text-primary hover:underline">
+        Start a new digest →
+      </a>
+    </aside>
+  </div>
 </BaseLayout>

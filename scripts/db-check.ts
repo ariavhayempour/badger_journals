@@ -9,8 +9,7 @@ export interface Probe {
   message: string;
 }
 
-// A unique, clearly-throwaway record; the token lets the runner target it for delete.
-// 'inquiry' is a stable member of the submissions CHECK set (see migrations/0001_init.sql).
+// A unique, clearly-throwaway record the runner targets by token; 'inquiry' is a stable member of the submissions CHECK set (see migrations/0001_init.sql).
 export function buildProbe(token: string): Probe {
   return {
     name: 'db-check',

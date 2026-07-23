@@ -105,14 +105,14 @@ describe('T3 — logo in the masthead', () => {
   });
 
   it('renders the logo via <Image> inside the brand link', () => {
-    expect(header).toMatch(/<Image\b[\s\S]*?class=["']brand-logo["'][\s\S]*?\/?>/);
+    expect(header).toMatch(/<a href="\/"[\s\S]*?<Image\b[\s\S]*?<\/a>/);
   });
 
   it('keeps the visible wordmark text as the brand link’s accessible name', () => {
     // Logo is decorative (alt="") because the adjacent wordmark text names the link.
-    const logo = header.match(/<Image\b[\s\S]*?brand-logo[\s\S]*?\/?>/)?.[0] ?? '';
+    const logo = header.match(/<Image\b[\s\S]*?\/>/)?.[0] ?? '';
     expect(logo).toMatch(/alt=["']["']/);
-    expect(header).toMatch(/class="brand"[\s\S]*?Badger Journals/);
+    expect(header).toMatch(/>Badger Journals<\/span>/);
   });
 });
 
@@ -145,9 +145,9 @@ describe('T6 — team headshots', () => {
     expect(image).toMatch(/alt=\{[^}]*\.name\}/);
   });
 
-  it('falls back to the committed placeholder when a member has no photo', () => {
-    expect(teamPage).toMatch(/import\s+\w+\s+from\s+['"][^'"]*assets\/images\/placeholder-avatar\.(jpg|png)['"]/);
-    expect(teamPage).toMatch(/\.photo\s*\?\?/);
+  it('falls back to an initials monogram when a member has no photo', () => {
+    expect(teamPage).toMatch(/m\.photo\s*\?/); // conditional render on the optional photo
+    expect(teamPage).toMatch(/initials\(/); // monogram fallback branch
   });
 });
 

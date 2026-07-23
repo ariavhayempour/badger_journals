@@ -2,7 +2,10 @@
 // Per-request SSR; the /admin gate (middleware) covers GET and POST — no in-page auth check.
 export const prerender = false;
 import AdminLayout from '../../../layouts/AdminLayout.astro';
+import PageHeader from '../../../components/admin/PageHeader.astro';
+import Panel from '../../../components/admin/Panel.astro';
 import EventForm from '../../../components/EventForm.astro';
+import DeleteEventButton from '../../../components/DeleteEventButton';
 import { getEvent, updateEvent } from '../../../db/event';
 import { validateEvent, type EventFieldError, type EventInput } from '../../../lib/event-validation';
 
@@ -47,7 +50,24 @@ const values: Partial<EventInput> = submitted ?? {
 };
 ---
 <AdminLayout title="Edit event">
-  <h1>Edit event</h1>
-  <EventForm action={`/admin/events/${id}`} actionValue="update" submitLabel="Save changes" values={values} errors={errors} />
-  <p><a href="/admin/events">Back to events</a></p>
+  <p class="mb-4"><a href="/admin/events" class="text-sm font-semibold text-muted-foreground hover:text-primary">← Back to events</a></p>
+  <PageHeader title="Edit event" subtitle={event.title ?? undefined} />
+
+  <Panel title="Event details">
+    <div class="p-5">
+      <EventForm action={`/admin/events/${id}`} actionValue="update" submitLabel="Save changes" values={values} errors={errors} />
+    </div>
+  </Panel>
+
+  <section class="mt-8 overflow-hidden rounded-2xl border border-destructive/30 bg-card">
+    <div class="border-b border-destructive/20 bg-destructive/5 px-5 py-4">
+      <h2 class="font-serif text-xl font-bold text-destructive">Danger zone</h2>
+    </div>
+    <div class="flex flex-wrap items-center justify-between gap-4 p-5">
+      <p class="max-w-[52ch] text-sm text-muted-foreground">
+        Deleting this event also removes every RSVP attached to it. This action can't be undone.
+      </p>
+      <DeleteEventButton client:load id={id} />
+    </div>
+  </section>
 </AdminLayout>

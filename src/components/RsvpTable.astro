@@ -1,5 +1,6 @@
 ---
 import type { MeetingGroup } from '../lib/rsvp-grouping';
+import Badge from './admin/Badge.astro';
 
 interface Props {
   groups: MeetingGroup[];
@@ -11,59 +12,37 @@ const formatTimestamp = (iso: string): string =>
 ---
 {
   groups.length === 0 ? (
-    <p class="empty">No RSVPs yet.</p>
+    <p class="rounded-2xl border border-border bg-card p-8 text-muted-foreground">No RSVPs yet.</p>
   ) : (
     groups.map((group) => (
-      <section class="meeting">
-        <h3 class="meeting__title">{group.meeting}</h3>
-        <table class="meeting__table">
-          <thead>
-            <tr>
-              <th scope="col">Name</th>
-              <th scope="col">Email</th>
-              <th scope="col">RSVP'd</th>
-            </tr>
-          </thead>
-          <tbody>
-            {group.rsvps.map((rsvp) => (
+      <section class="mb-6 overflow-hidden rounded-2xl border border-border bg-card shadow-xs">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-5 py-4">
+          <h3 class="font-serif text-lg font-bold">{group.meeting}</h3>
+          <span class="text-sm text-muted-foreground">{group.rsvps.length} {group.rsvps.length === 1 ? 'guest' : 'guests'}</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full border-collapse text-sm">
+            <thead>
               <tr>
-                <td>{rsvp.name}</td>
-                <td>{rsvp.email}</td>
-                <td>{formatTimestamp(rsvp.created_at)}</td>
+                <th scope="col" class="border-b border-border/60 bg-muted/40 px-5 py-3 text-left text-[0.7rem] font-bold tracking-[0.08em] text-muted-foreground uppercase">Name</th>
+                <th scope="col" class="border-b border-border/60 bg-muted/40 px-5 py-3 text-left text-[0.7rem] font-bold tracking-[0.08em] text-muted-foreground uppercase">Email</th>
+                <th scope="col" class="border-b border-border/60 bg-muted/40 px-5 py-3 text-left text-[0.7rem] font-bold tracking-[0.08em] text-muted-foreground uppercase">Status</th>
+                <th scope="col" class="border-b border-border/60 bg-muted/40 px-5 py-3 text-left text-[0.7rem] font-bold tracking-[0.08em] text-muted-foreground uppercase">RSVP'd</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {group.rsvps.map((rsvp) => (
+                <tr class="transition-colors hover:bg-muted/40">
+                  <td class="border-b border-border/50 px-5 py-3.5 font-semibold">{rsvp.name}</td>
+                  <td class="border-b border-border/50 px-5 py-3.5 text-muted-foreground">{rsvp.email}</td>
+                  <td class="border-b border-border/50 px-5 py-3.5"><Badge variant="confirmed">Confirmed</Badge></td>
+                  <td class="border-b border-border/50 px-5 py-3.5 text-muted-foreground">{formatTimestamp(rsvp.created_at)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </section>
     ))
   )
 }
-
-<style>
-  .empty {
-    margin: 0;
-    color: var(--color-ink);
-    font-style: italic;
-  }
-  .meeting {
-    margin-bottom: var(--space-8);
-  }
-  .meeting__title {
-    margin: 0 0 var(--space-3);
-    font-size: var(--step-1);
-  }
-  .meeting__table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: var(--step-0);
-  }
-  .meeting__table th,
-  .meeting__table td {
-    padding: var(--space-3);
-    text-align: left;
-    border-bottom: 1px solid var(--color-rule);
-  }
-  .meeting__table th {
-    font-weight: 600;
-  }
-</style>

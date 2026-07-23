@@ -23,11 +23,17 @@ function postForm(fields: Record<string, string>, url = 'http://localhost/admin/
 
 const getReq = (url: string): Request => new Request(url, { method: 'GET' });
 
-// Load the index page with the DB helpers replaced by spies.
+// Load the index page with the rsvps/submissions DB helpers (read by the RSVP-count column and AdminLayout sidebar counts) replaced by spies.
+function mockChrome() {
+  vi.doMock('../../src/db/rsvp', () => ({ listRsvps: vi.fn(async () => []) }));
+  vi.doMock('../../src/db/submission', () => ({ listSubmissions: vi.fn(async () => []) }));
+}
+
 async function loadIndex(
   opts: { events?: EventRow[]; insert?: (i: EventInput) => Promise<EventRow>; del?: (id: number) => Promise<void> } = {},
 ) {
   vi.resetModules();
+  mockChrome();
   const listEvents = vi.fn(async () => opts.events ?? []);
   const insertEvent = vi.fn(opts.insert ?? (async () => eventRow));
   const deleteEvent = vi.fn(opts.del ?? (async () => {}));
@@ -39,6 +45,7 @@ async function loadIndex(
 // Load the edit page ([id]) with getEvent/updateEvent replaced by spies.
 async function loadEdit(opts: { event?: EventRow | null; update?: (id: number, i: EventInput) => Promise<EventRow | null> } = {}) {
   vi.resetModules();
+  mockChrome();
   const row = opts.event === undefined ? eventRow : opts.event;
   const getEvent = vi.fn(async () => row);
   const updateEvent = vi.fn(opts.update ?? (async () => row));
@@ -49,6 +56,8 @@ async function loadEdit(opts: { event?: EventRow | null; update?: (id: number, i
 
 afterEach(() => {
   vi.doUnmock('../../src/db/event');
+  vi.doUnmock('../../src/db/rsvp');
+  vi.doUnmock('../../src/db/submission');
   vi.resetModules();
 });
 
@@ -67,12 +76,13 @@ describe('GET /admin/events', () => {
     expect(html).toContain('/admin/events/42');
   });
 
-  it('renders a per-row delete form with the id and a confirm prompt', async () => {
+  it('makes Edit the primary row action and no longer renders a per-row delete form', async () => {
     const { Comp } = await loadIndex({ events: [eventRow] });
     const html = await (await AstroContainer.create()).renderToString(Comp);
-    expect(html).toMatch(/name="_action"[^>]*value="delete"|value="delete"[^>]*name="_action"/);
-    expect(html).toMatch(/name="id"[^>]*value="42"|value="42"[^>]*name="id"/);
-    expect(html).toMatch(/onsubmit="return confirm\(/i);
+    // Delete moved into the edit view; the row exposes an Edit link only.
+    expect(html).toMatch(/href="\/admin\/events\/42"[^>]*>[\s\S]*?Edit/);
+    expect(html).not.toMatch(/value="delete"/);
+    expect(html).not.toMatch(/onsubmit="return confirm\(/i);
   });
 
   it('renders a create form posting to /admin/events with the event fields', async () => {

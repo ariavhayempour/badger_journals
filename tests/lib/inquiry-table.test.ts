@@ -29,7 +29,7 @@ describe('InquiryTable', () => {
     expect(html).not.toContain('No submissions yet.');
     expect(html).toContain('Grace Hopper');
     expect(html).toContain('grace@wisc.edu');
-    expect(html).toContain('inquiry');
+    expect(html).toContain('Inquiry'); // human label for the 'inquiry' submission type
     expect(html).toContain('When is the next meeting?');
   });
 

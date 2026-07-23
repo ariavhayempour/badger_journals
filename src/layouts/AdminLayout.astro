@@ -1,13 +1,38 @@
 ---
-// Admin shell: separate from the public BaseLayout because the admin area is a distinct, unlinked surface.
+// Admin shell: Cardinal top bar + iconed sidebar, distinct from the public BaseLayout.
 import { UserButton } from '@clerk/astro/components';
-import '../styles/tokens.css';
+import '@fontsource/spectral/latin-600.css';
+import '@fontsource/spectral/latin-700.css';
+import '@fontsource/spectral/latin-800.css';
+import '@fontsource-variable/hanken-grotesk';
 import '../styles/global.css';
+import AdminNav, { type AdminLink } from '../components/AdminNav';
+import { listRsvps } from '../db/rsvp';
+import { listSubmissions } from '../db/submission';
 
 interface Props {
   title: string;
 }
 const { title } = Astro.props;
+
+const [rsvps, submissions] = await Promise.all([listRsvps(), listSubmissions()]);
+const current = Astro.url.pathname;
+const isActive = (href: string) => (href === '/admin' ? current === '/admin' : current.startsWith(href));
+
+const links: AdminLink[] = [
+  { href: '/admin', label: 'Dashboard', icon: 'dashboard', active: isActive('/admin') },
+  { href: '/admin/events', label: 'Events', icon: 'events', active: isActive('/admin/events') },
+  { href: '/admin/rsvps', label: 'RSVPs', icon: 'rsvps', count: rsvps.length, active: isActive('/admin/rsvps') },
+  { href: '/admin/submissions', label: 'Submissions', icon: 'submissions', count: submissions.length, active: isActive('/admin/submissions') },
+];
+
+// Inline icons keep the desktop sidebar server-rendered (no hydration).
+const icons: Record<AdminLink['icon'], string> = {
+  dashboard: 'M4 13h6V4H4zM14 20h6V4h-6zM4 20h6v-5H4z',
+  events: 'M3 5h18v16H3zM3 9h18M8 3v4M16 3v4',
+  rsvps: 'M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9.5 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M22 21v-2a4 4 0 0 0-3-3.87',
+  submissions: 'M4 4h16v16H4zM4 7l8 6 8-6',
+};
 ---
 <!doctype html>
 <html lang="en">
@@ -17,31 +42,51 @@ const { title } = Astro.props;
     <meta name="robots" content="noindex, nofollow" />
     <title>{title} · Badger Journals Admin</title>
   </head>
-  <body>
-    <header class="admin-bar">
-      <span class="admin-brand">Badger Journals Admin</span>
-      <UserButton />
+  <body class="min-h-dvh bg-canvas text-foreground">
+    <header class="flex h-15 items-center gap-3 bg-primary px-4 text-white sm:px-6">
+      <AdminNav client:load links={links} />
+      <a href="/admin" class="flex items-center gap-2.5">
+        <span class="grid size-8 place-items-center rounded-lg bg-white/16 font-serif text-base font-extrabold">B</span>
+        <span class="font-serif text-lg font-bold">Badger Journals</span>
+        <span class="hidden rounded bg-white/18 px-1.5 py-0.5 text-[0.62rem] font-bold tracking-[0.12em] uppercase sm:inline">Admin</span>
+      </a>
+      <div class="ml-auto flex items-center gap-4">
+        <a href="/" class="hidden text-sm font-medium text-white/85 transition-colors hover:text-white sm:inline">View site ↗</a>
+        <UserButton />
+      </div>
     </header>
-    <main class="admin-main">
-      <slot />
-    </main>
+
+    <div class="mx-auto flex w-full max-w-[1440px]">
+      <aside class="hidden w-60 shrink-0 border-r border-sidebar-border bg-sidebar lg:block">
+        <nav class="sticky top-4 grid gap-1 p-3">
+          <p class="px-3 pt-2 pb-1 text-[0.68rem] font-bold tracking-[0.14em] text-muted-foreground uppercase">Manage</p>
+          {links.map((l) => (
+            <a
+              href={l.href}
+              aria-current={l.active ? 'page' : undefined}
+              class:list={[
+                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                l.active ? 'bg-sidebar-accent text-sidebar-accent-foreground' : 'text-sidebar-foreground hover:bg-black/[0.04]',
+              ]}
+            >
+              <svg class="size-[18px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <path d={icons[l.icon]} />
+              </svg>
+              {l.label}
+              {l.count != null && l.count > 0 && (
+                <span class:list={[
+                  'ml-auto grid h-5 min-w-[22px] place-items-center rounded-full px-1.5 text-xs font-bold',
+                  l.active ? 'bg-primary text-primary-foreground' : 'bg-black/[0.06] text-muted-foreground',
+                ]}>{l.count}</span>
+              )}
+            </a>
+          ))}
+        </nav>
+      </aside>
+
+      <main class="min-w-0 flex-1 px-5 py-8 sm:px-8">
+        <slot />
+      </main>
+    </div>
   </body>
 </html>
-
-<style>
-  .admin-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1rem 1.5rem;
-    border-bottom: 1px solid var(--color-border, #e5e5e5);
-  }
-  .admin-brand {
-    font-weight: 600;
-  }
-  .admin-main {
-    max-width: 60rem;
-    margin: 0 auto;
-    padding: 2rem 1.5rem;
-  }
-</style>
