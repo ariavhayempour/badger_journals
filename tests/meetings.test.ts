@@ -47,7 +47,7 @@ describe('/meetings page shell', () => {
     const html = await renderWith([]);
     expect(html).toContain('<title>Meetings · Badger Journals</title>');
     expect(html).toContain('property="og:title" content="Meetings"');
-    expect(html).toMatch(/>\s*Come read with us\.\s*<\/h1>/);
+    expect(html).toMatch(/>\s*RSVP to an event\.\s*<\/h1>/);
   });
 });
 
