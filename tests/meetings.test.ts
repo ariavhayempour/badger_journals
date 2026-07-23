@@ -21,13 +21,23 @@ const FUTURE: EventRow = {
   location: 'Chamberlin Hall 2103',
   created_at: '2099-01-01T00:00:00Z',
 };
+// Same month as FUTURE but earlier in it, so the two land in one calendar month together.
+const FUTURE_SAME_MONTH: EventRow = {
+  id: 3,
+  slug: '2099-12-05-earlier',
+  date: '2099-12-05',
+  title: 'Earlier session',
+  time: '6:30 PM',
+  location: 'Steenbock Library 130',
+  created_at: '2099-01-01T00:00:00Z',
+};
 
 // Render the page against seeded rows by mocking the DB read (no live DB in CI).
-async function renderWith(rows: EventRow[]): Promise<string> {
+async function renderWith(rows: EventRow[], url = 'http://localhost/meetings'): Promise<string> {
   vi.resetModules();
   vi.doMock('../src/db/event', () => ({ listEvents: async () => rows }));
   const { default: Meetings } = await import('../src/pages/meetings.astro');
-  const html = await (await AstroContainer.create()).renderToString(Meetings);
+  const html = await (await AstroContainer.create()).renderToString(Meetings, { request: new Request(url) });
   vi.doUnmock('../src/db/event');
   return html;
 }
@@ -41,41 +51,63 @@ describe('/meetings page shell', () => {
   });
 });
 
-describe('/meetings render', () => {
-  it('renders a meeting date as a <time datetime> plus each present detail', async () => {
+describe('/meetings calendar + agenda', () => {
+  it('defaults to the month of the nearest upcoming meeting and renders it as <time datetime>', async () => {
     const html = await renderWith([FUTURE]);
     expect(html).toContain('datetime="2099-12-31"');
     expect(html).toContain(FUTURE.title!);
     expect(html).toContain(FUTURE.time!);
     expect(html).toContain(FUTURE.location!);
+    expect(html).toContain('December 2099'); // month label follows the default focus month
   });
 
-  it('shows a far-past meeting under "Past meetings", never in the upcoming list', async () => {
-    const html = await renderWith([PAST, FUTURE]);
-    expect(html).toContain('Past meetings');
-    // The past date appears after the "Past meetings" heading, not before it.
-    const heading = html.indexOf('Past meetings');
-    expect(html.indexOf('datetime="2000-01-01"')).toBeGreaterThan(heading);
-    expect(html.indexOf('datetime="2099-12-31"')).toBeLessThan(heading);
+  it('groups same-month meetings under one agenda list, both upcoming', async () => {
+    const html = await renderWith([FUTURE, FUTURE_SAME_MONTH]);
+    expect(html).toContain('id="d-2099-12-31"');
+    expect(html).toContain('id="d-2099-12-05"');
+    expect(html).toContain('2 meetings in December 2099');
   });
 
-  it('renders the empty state when there are no upcoming meetings', async () => {
-    expect(await renderWith([])).toContain('Stay tuned for upcoming meetings!');
-    // All-past: empty state still shows, and the past section renders beneath it.
-    const allPast = await renderWith([PAST]);
-    expect(allPast).toContain('Stay tuned for upcoming meetings!');
-    expect(allPast).toContain('Past meetings');
+  it('respects an explicit ?month= param over the default', async () => {
+    const html = await renderWith([FUTURE], 'http://localhost/meetings?month=2050-06');
+    expect(html).toContain('June 2050');
+    expect(html).not.toContain(FUTURE.title!); // FUTURE isn't in the requested month
+    expect(html).toContain('No meetings scheduled in June 2050.');
   });
 
-  it('exposes an RSVP form keyed to each upcoming meeting, but not to past meetings', async () => {
-    const html = await renderWith([FUTURE, PAST]);
+  it('shows a far-past meeting muted, with no RSVP form, when its month is in view', async () => {
+    const html = await renderWith([PAST], 'http://localhost/meetings?month=2000-01');
+    expect(html).toContain('datetime="2000-01-01"');
+    expect(html).toContain('This meeting has passed.');
+    expect(html).not.toMatch(/<form/i);
+  });
+
+  it('renders an RSVP form keyed to an upcoming meeting, but never for a past one', async () => {
+    const html = await renderWith([FUTURE]);
     expect(html).toContain('action="/api/rsvp"');
-    expect(html).toContain(`value="${FUTURE.slug}"`); // form wired to the upcoming meeting's slug
-    expect(html).not.toContain(`value="${PAST.slug}"`); // past meetings get no form
+    expect(html).toContain(`value="${FUTURE.slug}"`);
   });
 
-  it('renders no form in the empty state or an all-past list', async () => {
-    expect(await renderWith([])).not.toMatch(/<form/i);
-    expect(await renderWith([PAST])).not.toMatch(/<form/i);
+  it('shows an empty state with no form when the focus month has no meetings', async () => {
+    const html = await renderWith([]);
+    expect(html).toContain('No meetings scheduled in');
+    expect(html).not.toMatch(/<form/i);
+  });
+
+  it('offers a jump link to the nearest upcoming meeting from an empty month', async () => {
+    const html = await renderWith([FUTURE], 'http://localhost/meetings?month=2050-06');
+    expect(html).toContain('Jump to the next meeting');
+    expect(html).toContain('href="/meetings?month=2099-12#d-2099-12-31"');
+  });
+
+  it('omits the jump link when nothing is upcoming anywhere', async () => {
+    const html = await renderWith([PAST]);
+    expect(html).not.toContain('Jump to the next meeting');
+  });
+
+  it('exposes previous/next month navigation links', async () => {
+    const html = await renderWith([], 'http://localhost/meetings?month=2050-06');
+    expect(html).toContain('href="/meetings?month=2050-05"');
+    expect(html).toContain('href="/meetings?month=2050-07"');
   });
 });
