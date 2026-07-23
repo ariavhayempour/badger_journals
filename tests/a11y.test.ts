@@ -1,8 +1,11 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { JSDOM, VirtualConsole } from 'jsdom';
 import axe from 'axe-core';
 import type { AxeResults, Result } from 'axe-core';
+
+// /meetings is SSR over the events table; stub the read so the page renders without a live DB.
+vi.mock('../src/db/event', () => ({ listEvents: async () => [] }));
 
 import Index from '../src/pages/index.astro';
 import Meetings from '../src/pages/meetings.astro';
