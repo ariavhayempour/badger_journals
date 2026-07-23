@@ -27,5 +27,7 @@ export default defineConfig({
 
   vite: {
     plugins: [tailwindcss()],
+    // Force a single React instance so client islands don't hit "invalid hook call". See docs/claude/0016-react-dedupe.md
+    resolve: { dedupe: ['react', 'react-dom'] },
   },
 });
