@@ -2,74 +2,52 @@
 // Every entry is a real <a href> so browser back/forward works natively.
 import { Image } from 'astro:assets';
 import logo from '../assets/images/logo.jpg';
+import { buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import MobileNav from './MobileNav';
 
 const links = [
+  { href: '/', label: 'Home' },
   { href: '/meetings', label: 'Meetings' },
-  { href: '/mission', label: 'Mission' },
-  { href: '/team', label: 'Team' },
-  { href: '/create-next-digest', label: 'Create the Next Digest' },
+  { href: '/create-next-digest', label: 'Digests' },
   { href: '/contact', label: 'Contact' },
 ];
+
+const current = Astro.url.pathname;
+const isActive = (href: string) =>
+  href === '/' ? current === '/' : current.startsWith(href);
 ---
-<header>
-  <nav aria-label="Primary">
-    <a href="/" class="brand">
+<header class="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur-md">
+  <nav aria-label="Primary" class="mx-auto flex max-w-6xl items-center gap-6 px-6 py-3.5">
+    <a href="/" class="mr-auto flex items-center gap-3">
       <Image
-        class="brand-logo"
+        class="h-10 w-auto"
         src={logo}
         alt=""
         width={144}
         height={96}
         format="avif"
         loading="eager"
-      />Badger Journals</a>
-    <ul>
+      />
+      <span class="font-serif text-[1.35rem] font-bold tracking-tight text-foreground">Badger Journals</span>
+    </a>
+    <ul class="hidden items-center gap-7 md:flex">
       {links.map((l) => (
-        <li><a href={l.href}>{l.label}</a></li>
+        <li>
+          <a
+            href={l.href}
+            aria-current={isActive(l.href) ? 'page' : undefined}
+            class:list={[
+              'text-[0.95rem] font-medium transition-colors hover:text-primary',
+              isActive(l.href) ? 'text-primary' : 'text-foreground/70',
+            ]}
+          >{l.label}</a>
+        </li>
       ))}
     </ul>
+    <a href="/meetings" class={cn(buttonVariants({ variant: 'default' }), 'hidden h-9 px-4 md:inline-flex')}>
+      RSVP to a meeting
+    </a>
+    <MobileNav client:load links={links} />
   </nav>
 </header>
-<style>
-  header {
-    background: var(--color-paper);
-    border-bottom: 3px solid var(--color-cardinal);
-  }
-  nav {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-4) var(--space-6);
-    max-width: 68rem;
-    margin-inline: auto;
-    padding: var(--space-4) var(--space-6);
-  }
-  .brand {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-3);
-    margin-right: auto;
-    font-family: var(--font-display);
-    font-size: var(--step-3);
-    font-weight: 700;
-    color: var(--color-cardinal);
-    text-decoration: none;
-  }
-  .brand-logo {
-    height: 3rem;
-    width: auto;
-  }
-  nav > ul {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-3) var(--space-6);
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-  nav a {
-    text-decoration: none;
-    font-weight: 500;
-  }
-</style>

@@ -27,81 +27,54 @@ const detail = (m: MeetingView): string => [m.time, m.location].filter(Boolean).
   description="When and where Badger Journals meets, and what to expect."
   path="/meetings"
 >
-  <h1>Meetings</h1>
+  <section class="border-b border-border bg-cream">
+    <div class="mx-auto max-w-5xl px-6 py-16 sm:py-20">
+      <p class="mb-3 text-xs font-bold tracking-[0.14em] text-primary uppercase">Meetings</p>
+      <h1 class="font-serif text-[clamp(2.4rem,5vw,3.6rem)] leading-[1.05] font-extrabold tracking-tight text-balance">
+        Come read with us.
+      </h1>
+      <p class="mt-4 max-w-[60ch] text-lg text-muted-foreground">
+        No prep required — drop in, join the discussion, and RSVP so we know to save you a seat.
+      </p>
+    </div>
+  </section>
 
-  {upcoming.length > 0 ? (
-    <ul class="meetings">
-      {upcoming.map((m) => (
-        <li>
-          <time class="date" datetime={m.date}>{formatDate(m.date)}</time>
-          {m.title && <p class="title">{m.title}</p>}
-          {detail(m) && <p class="detail">{detail(m)}</p>}
-          <RsvpForm meeting={m.id} />
-        </li>
-      ))}
-    </ul>
-  ) : (
-    <p class="empty">Stay tuned for upcoming meetings!</p>
-  )}
-
-  {past.length > 0 && (
-    <section class="past">
-      <h2>Past meetings</h2>
-      <ul class="meetings">
-        {past.map((m) => (
-          <li>
-            <time class="date" datetime={m.date}>{formatDate(m.date)}</time>
-            {m.title && <p class="title">{m.title}</p>}
-            {detail(m) && <p class="detail">{detail(m)}</p>}
+  <div class="mx-auto max-w-5xl px-6 py-16">
+    {upcoming.length > 0 ? (
+      <ul class="grid list-none gap-5 p-0">
+        {upcoming.map((m) => (
+          <li class="rounded-2xl border border-border bg-card p-6 sm:p-8">
+            <div class="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+              <time class="font-serif text-xl font-bold tabular-nums text-primary" datetime={m.date}>{formatDate(m.date)}</time>
+              {m.title && <p class="font-serif text-xl font-semibold">{m.title}</p>}
+            </div>
+            {detail(m) && <p class="mt-1 text-muted-foreground">{detail(m)}</p>}
+            <RsvpForm meeting={m.id} />
           </li>
         ))}
       </ul>
-    </section>
-  )}
+    ) : (
+      <p class="rounded-2xl border border-border bg-card p-8 text-lg text-muted-foreground">
+        Stay tuned for upcoming meetings!
+      </p>
+    )}
+
+    {past.length > 0 && (
+      <section class="mt-16">
+        <h2 class="mb-6 flex items-center gap-4 font-serif text-2xl font-bold tracking-tight text-muted-foreground">
+          Past meetings
+          <span class="h-px flex-1 bg-border"></span>
+        </h2>
+        <ul class="grid list-none gap-3 p-0">
+          {past.map((m) => (
+            <li class="flex flex-wrap items-baseline gap-x-4 gap-y-1 rounded-xl border border-border bg-canvas px-5 py-4">
+              <time class="font-serif font-semibold tabular-nums text-muted-foreground" datetime={m.date}>{formatDate(m.date)}</time>
+              {m.title && <p class="font-medium">{m.title}</p>}
+              {detail(m) && <p class="text-sm text-muted-foreground">{detail(m)}</p>}
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+  </div>
 </BaseLayout>
-<style>
-  .meetings {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    display: grid;
-    gap: var(--space-4);
-  }
-  .meetings li {
-    padding: var(--space-4) var(--space-6);
-    background: var(--color-paper-muted);
-    border: 1px solid var(--color-rule);
-    border-left: 3px solid var(--color-cardinal);
-    border-radius: var(--radius);
-  }
-  .date {
-    display: block;
-    font-family: var(--font-display);
-    font-size: var(--step-1);
-    color: var(--color-ink);
-  }
-  .title {
-    margin: var(--space-3) 0 0;
-    font-weight: 500;
-  }
-  .detail {
-    margin: var(--space-3) 0 0;
-    color: var(--color-ink);
-  }
-  .empty {
-    padding: var(--space-6);
-    background: var(--color-paper-muted);
-    border: 1px solid var(--color-rule);
-    border-radius: var(--radius);
-  }
-  .past {
-    margin-top: var(--space-8);
-  }
-  /* De-emphasize past meetings by more than color: a distinct heading, muted accent, and smaller scale. */
-  .past .meetings li {
-    border-left-color: var(--color-rule);
-  }
-  .past .date {
-    font-size: var(--step-0);
-  }
-</style>

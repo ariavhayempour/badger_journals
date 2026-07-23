@@ -1,0 +1,17 @@
+---
+// Per-request SSR read of submissions. The /admin gate (middleware) covers this route.
+export const prerender = false;
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import PageHeader from '../../components/admin/PageHeader.astro';
+import Panel from '../../components/admin/Panel.astro';
+import InquiryTable from '../../components/InquiryTable.astro';
+import { listSubmissions } from '../../db/submission';
+
+const submissions = await listSubmissions();
+---
+<AdminLayout title="Submissions">
+  <PageHeader title="Submissions" subtitle="Inquiries, team applications, and digest pitches." />
+  <Panel title="Inbox" count={`${submissions.length} total`}>
+    <InquiryTable submissions={submissions} />
+  </Panel>
+</AdminLayout>

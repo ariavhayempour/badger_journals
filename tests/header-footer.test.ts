@@ -5,53 +5,47 @@ import FooterCmp from '../src/components/Footer.astro';
 import header from '../src/components/Header.astro?raw';
 import footer from '../src/components/Footer.astro?raw';
 
-const styleBlock = (src: string): string => src.match(/<style>([\s\S]*?)<\/style>/)?.[1] ?? '';
-
-describe('T3 — branded Header (scoped styles, tokens only)', () => {
-  it('carries a scoped <style> block', () => {
-    expect(header).toMatch(/<style>[\s\S]*<\/style>/);
+describe('branded Header (Tailwind + tokens)', () => {
+  it('sets the wordmark in the serif display family', () => {
+    expect(header).toMatch(/font-serif/);
   });
 
-  it('sets the wordmark in the display serif', () => {
-    expect(styleBlock(header)).toMatch(/var\(--font-display\)/);
+  it('applies a Cardinal (primary) brand accent', () => {
+    expect(header).toMatch(/\b(text-primary|bg-primary)\b/);
   });
 
-  it('applies a cardinal brand accent to the masthead', () => {
-    expect(styleBlock(header)).toMatch(/var\(--color-cardinal/);
+  it('styles via design tokens, not raw hex', () => {
+    expect(header).not.toMatch(/#[0-9a-f]{3,6}/i);
   });
 
-  it('uses tokens only — no raw hex in the scoped styles', () => {
-    expect(styleBlock(header)).not.toMatch(/#[0-9a-f]{3,6}/i);
-  });
-
-  it('compiles and scopes its styling onto rendered elements', async () => {
+  it('renders the wordmark and the primary nav', async () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(HeaderCmp);
-    expect(html).toMatch(/data-astro-cid/);
+    expect(html).toContain('Badger Journals');
+    for (const href of ['/', '/meetings', '/create-next-digest', '/contact']) {
+      expect(html).toContain(`href="${href}"`);
+    }
   });
-
 });
 
-describe('T3 — branded Footer (scoped styles, tokens only)', () => {
-  it('carries a scoped <style> block', () => {
-    expect(footer).toMatch(/<style>[\s\S]*<\/style>/);
+describe('branded Footer (Tailwind + tokens)', () => {
+  it('uses a Cardinal (primary) accent and no raw hex', () => {
+    expect(footer).toMatch(/\bbg-primary\b/);
+    expect(footer).not.toMatch(/#[0-9a-f]{3,6}/i);
   });
 
-  it('uses tokens for its branding (with a cardinal accent) and no raw hex', () => {
-    const style = styleBlock(footer);
-    expect(style).toMatch(/var\(--color-cardinal/);
-    expect(style).not.toMatch(/#[0-9a-f]{3,6}/i);
-  });
-
-  it('compiles and scopes its styling onto rendered elements', async () => {
+  it('renders the wordmark and social links', async () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(FooterCmp);
-    expect(html).toMatch(/data-astro-cid/);
+    expect(html).toContain('Badger Journals');
+    expect(html).toContain('https://www.instagram.com/badgerjournals/');
+    expect(html).toContain('https://www.linkedin.com/in/badger-journals-551922414/');
   });
 
-  it('links to the admin dashboard from the footer', async () => {
+  it('carries the Team link (moved out of the primary nav) and the admin link', async () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(FooterCmp);
+    expect(html).toMatch(/href="\/team"/);
     expect(html).toMatch(/<a[^>]*href="\/admin"[^>]*>[^<]*Admin/);
   });
 });

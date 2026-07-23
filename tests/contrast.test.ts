@@ -2,48 +2,56 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-const tokens = readFileSync(fileURLToPath(new URL('../src/styles/tokens.css', import.meta.url)), 'utf8');
-
-// Assert WCAG 2.1 AA (4.5:1) directly from token values — axe's contrast rule can't run under jsdom (docs/claude/code-notes.md).
+// Assert WCAG 2.1 AA (4.5:1) from the OKLCH token values in global.css — axe's contrast rule can't run under jsdom (docs/claude/code-notes.md).
+const css = readFileSync(fileURLToPath(new URL('../src/styles/global.css', import.meta.url)), 'utf8');
 const AA_NORMAL = 4.5;
 
-function hex(token: string): string {
-  const m = new RegExp(`--${token}:\\s*(#[0-9a-fA-F]{6})`).exec(tokens);
-  if (!m) throw new Error(`token --${token} not found in tokens.css`);
-  return m[1];
+function oklch(token: string): [number, number, number] {
+  const m = new RegExp(`--${token}:\\s*oklch\\(\\s*([\\d.]+)\\s+([\\d.]+)\\s+([\\d.]+)`).exec(css);
+  if (!m) throw new Error(`token --${token} not found as an oklch() literal in global.css`);
+  return [Number(m[1]), Number(m[2]), Number(m[3])];
 }
 
-function channelToLinear(c: number): number {
-  const s = c / 255;
-  return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
-}
-
-function luminance(color: string): number {
-  const r = parseInt(color.slice(1, 3), 16);
-  const g = parseInt(color.slice(3, 5), 16);
-  const b = parseInt(color.slice(5, 7), 16);
-  return 0.2126 * channelToLinear(r) + 0.7152 * channelToLinear(g) + 0.0722 * channelToLinear(b);
+// OKLCH → linear sRGB (Björn Ottosson's OKLab matrices); WCAG luminance uses linear channels directly.
+function luminance([L, C, H]: [number, number, number]): number {
+  const a = C * Math.cos((H * Math.PI) / 180);
+  const b = C * Math.sin((H * Math.PI) / 180);
+  const l_ = L + 0.3963377774 * a + 0.2158037573 * b;
+  const m_ = L - 0.1055613458 * a - 0.0638541728 * b;
+  const s_ = L - 0.0894841775 * a - 1.291485548 * b;
+  const l = l_ ** 3;
+  const m = m_ ** 3;
+  const s = s_ ** 3;
+  const r = 4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s;
+  const g = -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s;
+  const bl = -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s;
+  const clamp = (x: number) => Math.min(1, Math.max(0, x));
+  return 0.2126 * clamp(r) + 0.7152 * clamp(g) + 0.0722 * clamp(bl);
 }
 
 function ratio(fg: string, bg: string): number {
-  const [hi, lo] = [luminance(fg), luminance(bg)].sort((a, b) => b - a);
+  const [hi, lo] = [luminance(oklch(fg)), luminance(oklch(bg))].sort((a, b) => b - a);
   return (hi + 0.05) / (lo + 0.05);
 }
 
-// Foreground text over background, as painted across the six pages + chrome.
+// Foreground text over background, as painted across the pages, chrome, and admin badges.
 const PAIRS = [
-  { label: 'body ink on paper', fg: 'color-ink', bg: 'color-paper' },
-  { label: 'card ink on muted', fg: 'color-ink', bg: 'color-paper-muted' },
-  { label: 'link cardinal on paper', fg: 'color-cardinal', bg: 'color-paper' },
-  { label: 'link/role cardinal on muted', fg: 'color-cardinal', bg: 'color-paper-muted' },
-  { label: 'hover cardinal-dark on paper', fg: 'color-cardinal-dark', bg: 'color-paper' },
-  { label: 'hover cardinal-dark on muted', fg: 'color-cardinal-dark', bg: 'color-paper-muted' },
+  { label: 'body ink on paper', fg: 'foreground', bg: 'background' },
+  { label: 'muted body on paper', fg: 'muted-foreground', bg: 'background' },
+  { label: 'muted body on cream/muted surface', fg: 'muted-foreground', bg: 'muted' },
+  { label: 'primary (Cardinal) link on paper', fg: 'primary', bg: 'background' },
+  { label: 'white label on primary button', fg: 'primary-foreground', bg: 'primary' },
+  { label: 'cardinal-700 on paper', fg: 'cardinal-700', bg: 'background' },
+  { label: 'digest badge text on cardinal tint', fg: 'cardinal-700', bg: 'cardinal-tint' },
+  { label: 'confirmed badge text on success tint', fg: 'success', bg: 'success-tint' },
+  { label: 'join badge text on info tint', fg: 'info', bg: 'info-tint' },
+  { label: 'warn badge text on warn tint', fg: 'warn', bg: 'warn-tint' },
 ];
 
-describe('contrast — token pairs meet WCAG AA (4.5:1)', () => {
+describe('contrast — OKLCH token pairs meet WCAG AA (4.5:1)', () => {
   for (const { label, fg, bg } of PAIRS) {
     it(`${label} ≥ ${AA_NORMAL}:1`, () => {
-      expect(ratio(hex(fg), hex(bg))).toBeGreaterThanOrEqual(AA_NORMAL);
+      expect(ratio(fg, bg)).toBeGreaterThanOrEqual(AA_NORMAL);
     });
   }
 });

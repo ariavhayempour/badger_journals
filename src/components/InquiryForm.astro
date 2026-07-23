@@ -13,35 +13,37 @@ const nameErrId = `inq-name-err-${type}`;
 const emailErrId = `inq-email-err-${type}`;
 const messageErrId = `inq-message-err-${type}`;
 const statusId = `inq-status-${type}`;
+
+const field = 'w-full rounded-lg border border-input bg-background px-3 py-2 text-sm shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-[invalid=true]:border-destructive aria-[invalid=true]:ring-destructive/20';
 ---
-<form class="inquiry" method="post" action="/api/inquiry" novalidate data-inquiry>
-  <div class="inquiry__field">
-    <label for={nameId}>Name</label>
-    <input id={nameId} name="name" type="text" autocomplete="name" required maxlength={MAX_NAME} aria-describedby={nameErrId} />
-    <p class="inquiry__error" id={nameErrId} data-error-for="name" hidden></p>
+<form class="inquiry mt-4 grid gap-4 rounded-2xl border border-border bg-card p-6" method="post" action="/api/inquiry" novalidate data-inquiry>
+  <div class="grid gap-1.5">
+    <label for={nameId} class="text-sm font-medium">Name</label>
+    <input id={nameId} name="name" type="text" autocomplete="name" required maxlength={MAX_NAME} aria-describedby={nameErrId} class={`h-10 ${field}`} />
+    <p class="text-sm text-destructive" id={nameErrId} data-error-for="name" hidden></p>
   </div>
 
-  <div class="inquiry__field">
-    <label for={emailId}>Email (@wisc.edu)</label>
-    <input id={emailId} name="email" type="email" autocomplete="email" required maxlength={MAX_EMAIL} aria-describedby={emailErrId} />
-    <p class="inquiry__error" id={emailErrId} data-error-for="email" hidden></p>
+  <div class="grid gap-1.5">
+    <label for={emailId} class="text-sm font-medium">Email (@wisc.edu)</label>
+    <input id={emailId} name="email" type="email" autocomplete="email" required maxlength={MAX_EMAIL} aria-describedby={emailErrId} class={`h-10 ${field}`} />
+    <p class="text-sm text-destructive" id={emailErrId} data-error-for="email" hidden></p>
   </div>
 
-  <div class="inquiry__field">
-    <label for={messageId}>Message</label>
-    <textarea id={messageId} name="message" rows="5" required maxlength={MAX_MESSAGE} aria-describedby={messageErrId}></textarea>
-    <p class="inquiry__error" id={messageErrId} data-error-for="message" hidden></p>
+  <div class="grid gap-1.5">
+    <label for={messageId} class="text-sm font-medium">Message</label>
+    <textarea id={messageId} name="message" rows="5" required maxlength={MAX_MESSAGE} aria-describedby={messageErrId} class={`resize-y ${field}`}></textarea>
+    <p class="text-sm text-destructive" id={messageErrId} data-error-for="message" hidden></p>
   </div>
 
   <input type="hidden" name="type" value={type} />
 
-  <div class="inquiry__hp" aria-hidden="true">
+  <div class="absolute -left-[9999px] h-px w-px overflow-hidden" aria-hidden="true">
     <input type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true" />
   </div>
 
-  <button type="submit">Send</button>
+  <button type="submit" class="inline-flex h-10 w-fit items-center justify-center rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-progress disabled:opacity-60">Send</button>
 
-  <p class="inquiry__status" id={statusId} role="status" aria-live="polite" data-status hidden></p>
+  <p class="inquiry-status m-0 text-sm font-medium" id={statusId} role="status" aria-live="polite" data-status hidden></p>
 </form>
 
 <script>
@@ -137,80 +139,6 @@ const statusId = `inq-status-${type}`;
 </script>
 
 <style>
-  .inquiry {
-    display: grid;
-    gap: var(--space-4);
-    margin-top: var(--space-4);
-    padding: var(--space-4) var(--space-6);
-    background: var(--color-paper);
-    border: 1px solid var(--color-rule);
-    border-radius: var(--radius);
-  }
-  .inquiry__field {
-    display: grid;
-    gap: var(--space-3);
-  }
-  .inquiry__hp {
-    position: absolute;
-    left: -9999px;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-  }
-  .inquiry__field label {
-    font-weight: 500;
-  }
-  .inquiry__field input,
-  .inquiry__field textarea {
-    padding: var(--space-3);
-    font: inherit;
-    color: var(--color-ink);
-    background: var(--color-paper);
-    border: 1px solid var(--color-rule);
-    border-radius: var(--radius);
-  }
-  .inquiry__field textarea {
-    resize: vertical;
-  }
-  .inquiry__field input:focus-visible,
-  .inquiry__field textarea:focus-visible {
-    outline: 2px solid var(--color-cardinal);
-    outline-offset: 2px;
-  }
-  .inquiry__field input[aria-invalid='true'],
-  .inquiry__field textarea[aria-invalid='true'] {
-    border-color: var(--color-cardinal);
-  }
-  .inquiry__error {
-    margin: 0;
-    color: var(--color-cardinal-dark);
-    font-size: var(--step-0);
-  }
-  .inquiry button[type='submit'] {
-    justify-self: start;
-    padding: var(--space-3) var(--space-6);
-    color: var(--color-paper);
-    background: var(--color-cardinal);
-    border: 1px solid transparent;
-    border-radius: var(--radius);
-    cursor: pointer;
-  }
-  .inquiry button[type='submit']:hover {
-    background: var(--color-cardinal-dark);
-    color: var(--color-paper);
-  }
-  .inquiry button[type='submit']:disabled {
-    opacity: 0.6;
-    cursor: progress;
-  }
-  .inquiry__status {
-    margin: 0;
-    font-weight: 500;
-  }
-  .inquiry__status[data-tone='ok'] {
-    color: var(--color-cardinal-dark);
-  }
-  .inquiry__status[data-tone='error'] {
-    color: var(--color-cardinal);
-  }
+  .inquiry-status[data-tone='ok'] { color: var(--cardinal-700); }
+  .inquiry-status[data-tone='error'] { color: var(--destructive); }
 </style>

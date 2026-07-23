@@ -1,5 +1,6 @@
 ---
-import type { SubmissionRow } from '../db/schema';
+import type { SubmissionRow, SubmissionType } from '../db/schema';
+import Badge from './admin/Badge.astro';
 
 interface Props {
   submissions: SubmissionRow[];
@@ -8,58 +9,42 @@ const { submissions } = Astro.props;
 
 const formatTimestamp = (iso: string): string =>
   new Date(iso).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+
+const label: Record<SubmissionType, string> = {
+  inquiry: 'Inquiry',
+  join: 'Join the team',
+  digest: 'New digest',
+};
+const th = 'border-b border-border/60 bg-muted/40 px-5 py-3 text-left text-[0.7rem] font-bold tracking-[0.08em] text-muted-foreground uppercase';
+const td = 'border-b border-border/50 px-5 py-3.5 align-top';
 ---
 {
   submissions.length === 0 ? (
-    <p class="empty">No submissions yet.</p>
+    <p class="rounded-2xl border border-border bg-card p-8 text-muted-foreground">No submissions yet.</p>
   ) : (
-    <table class="inbox">
-      <thead>
-        <tr>
-          <th scope="col">Name</th>
-          <th scope="col">Email</th>
-          <th scope="col">Type</th>
-          <th scope="col">Message</th>
-          <th scope="col">Received</th>
-        </tr>
-      </thead>
-      <tbody>
-        {submissions.map((s) => (
+    <div class="overflow-x-auto">
+      <table class="w-full border-collapse text-sm">
+        <thead>
           <tr>
-            <td>{s.name}</td>
-            <td>{s.email}</td>
-            <td>{s.submission_type}</td>
-            <td class="inbox__message">{s.message}</td>
-            <td>{formatTimestamp(s.created_at)}</td>
+            <th scope="col" class={th}>Name</th>
+            <th scope="col" class={th}>Email</th>
+            <th scope="col" class={th}>Type</th>
+            <th scope="col" class={th}>Message</th>
+            <th scope="col" class={th}>Received</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {submissions.map((s) => (
+            <tr class="transition-colors hover:bg-muted/40">
+              <td class={`${td} font-semibold`}>{s.name}</td>
+              <td class={`${td} text-muted-foreground`}>{s.email}</td>
+              <td class={td}><Badge variant={s.submission_type}>{label[s.submission_type]}</Badge></td>
+              <td class={`${td} max-w-[40ch] whitespace-pre-wrap text-muted-foreground`}>{s.message}</td>
+              <td class={`${td} whitespace-nowrap text-muted-foreground`}>{formatTimestamp(s.created_at)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   )
 }
-
-<style>
-  .empty {
-    margin: 0;
-    color: var(--color-ink);
-    font-style: italic;
-  }
-  .inbox {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: var(--step-0);
-  }
-  .inbox th,
-  .inbox td {
-    padding: var(--space-3);
-    text-align: left;
-    vertical-align: top;
-    border-bottom: 1px solid var(--color-rule);
-  }
-  .inbox th {
-    font-weight: 600;
-  }
-  .inbox__message {
-    white-space: pre-wrap;
-  }
-</style>

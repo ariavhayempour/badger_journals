@@ -265,7 +265,7 @@ describe('InquiryForm.astro', () => {
   });
 });
 
-// --- Formspree cleanup guard (AC #5) ---
+// --- Formspree cleanup guard ---
 
 // Eagerly load every text file under src/ so the guard fails if Formspree creeps back in.
 const SRC_FILES = import.meta.glob('../src/**/*.{astro,ts,tsx,js,css,json,md}', {

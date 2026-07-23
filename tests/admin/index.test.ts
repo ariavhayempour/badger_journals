@@ -38,17 +38,17 @@ describe('GET /admin — Events section', () => {
     expect(html).toMatch(/<a[^>]*href="\/admin\/events"/);
   });
 
-  it('lists each event with its date and title', async () => {
+  it('lists each upcoming meeting with its formatted date and title', async () => {
     const { Comp } = await loadDashboard({ events: [eventRow] });
     const html = await (await AstroContainer.create()).renderToString(Comp);
-    expect(html).toContain('2099-12-31');
+    expect(html).toContain('Dec 31'); // 2099-12-31 formatted for the snapshot
     expect(html).toContain('Future session');
   });
 
-  it('shows an empty state when there are no events', async () => {
+  it('shows an empty state when there are no upcoming meetings', async () => {
     const { Comp } = await loadDashboard({ events: [] });
     const html = await (await AstroContainer.create()).renderToString(Comp);
-    expect(html).toMatch(/no events yet/i);
+    expect(html).toMatch(/no upcoming meetings/i);
   });
 
   it('reads events for the section', async () => {

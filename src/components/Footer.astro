@@ -1,48 +1,46 @@
 ---
-// Shared footer — identical on every page (matches the legacy single-file footer).
+// Shared footer, identical on every page; Team lives here (moved out of the primary nav).
+const explore = [
+  { href: '/meetings', label: 'Meetings' },
+  { href: '/create-next-digest', label: 'Digests' },
+  { href: '/mission', label: 'Mission' },
+  { href: '/team', label: 'Team' },
+  { href: '/contact', label: 'Contact' },
+];
 ---
-<footer>
-  <div>
-    <p><strong>Badger Journals</strong></p>
-    <p>Madison, WI, 53706<br />United States</p>
+<footer class="mt-24 bg-stone-950 text-white/70">
+  <div class="mx-auto grid max-w-6xl gap-10 px-6 py-14 sm:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr]">
+    <div>
+      <div class="mb-4 flex items-center gap-3">
+        <span class="grid size-9 place-items-center rounded-lg bg-primary font-serif text-lg font-extrabold text-primary-foreground">B</span>
+        <span class="font-serif text-xl font-bold text-white">Badger Journals</span>
+      </div>
+      <p class="max-w-[34ch] text-sm leading-relaxed">
+        A student-run journal club at UW–Madison making cutting-edge research accessible to everyone.
+      </p>
+      <p class="mt-4 text-sm">Madison, WI, 53706</p>
+    </div>
+    <nav aria-label="Explore">
+      <h2 class="mb-4 text-xs font-bold tracking-[0.14em] text-white uppercase">Explore</h2>
+      <ul class="space-y-2 text-sm">
+        {explore.map((l) => (
+          <li><a class="transition-colors hover:text-white" href={l.href}>{l.label}</a></li>
+        ))}
+      </ul>
+    </nav>
+    <nav aria-label="Connect">
+      <h2 class="mb-4 text-xs font-bold tracking-[0.14em] text-white uppercase">Connect</h2>
+      <ul class="space-y-2 text-sm">
+        <li><a class="transition-colors hover:text-white" href="https://www.instagram.com/badgerjournals/" target="_blank" rel="noopener">Instagram</a></li>
+        <li><a class="transition-colors hover:text-white" href="https://www.linkedin.com/in/badger-journals-551922414/" target="_blank" rel="noopener">LinkedIn</a></li>
+        <li><a class="transition-colors hover:text-white" href="/admin">Admin</a></li>
+      </ul>
+    </nav>
   </div>
-  <div>
-    <h2>Socials</h2>
-    <ul>
-      <li><a href="https://www.instagram.com/badgerjournals/" target="_blank" rel="noopener">Instagram</a></li>
-      <li><a href="https://www.linkedin.com/in/badger-journals-551922414/" target="_blank" rel="noopener">LinkedIn</a></li>
-    </ul>
-  </div>
-  <div>
-    <h2>Site</h2>
-    <ul>
-      <li><a href="/admin">Admin</a></li>
-    </ul>
+  <div class="border-t border-white/10">
+    <div class="mx-auto flex max-w-6xl flex-wrap justify-between gap-2 px-6 py-5 text-sm text-white/50">
+      <span>© 2026 Badger Journals</span>
+      <span>Made by Badgers, for Badgers</span>
+    </div>
   </div>
 </footer>
-<style>
-  footer {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-8);
-    max-width: 68rem;
-    margin-top: var(--space-8);
-    margin-inline: auto;
-    padding: var(--space-8) var(--space-6);
-    background: var(--color-paper-muted);
-    border-top: 3px solid var(--color-cardinal);
-  }
-  footer h2 {
-    margin-bottom: var(--space-3);
-    font-family: var(--font-display);
-    font-size: var(--step-1);
-  }
-  footer ul {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-  footer li + li {
-    margin-top: var(--space-3);
-  }
-</style>

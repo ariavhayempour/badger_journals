@@ -16,23 +16,22 @@ function walk(dir: string): string[] {
   });
 }
 
-describe('T6 — legacy color regression guard', () => {
-  // Mirrors the DoD grep: `grep -ri '8b1a1a\|crimson' src/` must be empty.
-  it('has no #8b1a1a or crimson anywhere under src/', () => {
+describe('legacy color regression guard', () => {
+  // The retired crimson (#8b1a1a) and the `crimson` keyword must never reappear.
+  it('has no #8b1a1a or crimson keyword anywhere under src/', () => {
     const offenders = walk(srcDir).filter((file) => {
       const content = readFileSync(file, 'utf8').toLowerCase();
-      return content.includes('8b1a1a') || content.includes('crimson');
+      return content.includes('8b1a1a') || /\bcrimson\b/.test(content);
     });
     expect(offenders).toEqual([]);
   });
 });
 
-describe('T6 — BaseLayout wires the branded system', () => {
-  it('imports the design tokens, global base, and self-hosted fonts', () => {
-    expect(layout).toMatch(/styles\/tokens\.css/);
+describe('BaseLayout wires the branded system', () => {
+  it('imports the global Tailwind base and the self-hosted Spectral + Hanken fonts', () => {
     expect(layout).toMatch(/styles\/global\.css/);
-    expect(layout).toMatch(/@fontsource\/playfair-display/);
-    expect(layout).toMatch(/@fontsource\/inter/);
+    expect(layout).toMatch(/@fontsource\/spectral/);
+    expect(layout).toMatch(/@fontsource-variable\/hanken-grotesk/);
   });
 
   it('renders the branded header and footer chrome on every page', async () => {
@@ -41,26 +40,23 @@ describe('T6 — BaseLayout wires the branded system', () => {
       props: { title: 'Home', description: 'Badger Journals.', path: '/' },
       slots: { default: '<p>page body</p>' },
     });
-    expect(html).toContain('class="brand"'); // masthead wordmark
+    expect(html).toContain('Badger Journals'); // masthead wordmark
     expect(html).toContain('Madison, WI, 53706'); // footer
     expect(html).toContain('<p>page body</p>'); // slotted content
   });
 });
 
-describe('T6 — Header/Footer render their branded structure', () => {
-  it('Header renders the wordmark and scoped branding', async () => {
+describe('Header/Footer render their branded structure', () => {
+  it('Header renders the wordmark in the serif family', async () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(Header);
-    // Decorative logo <img> precedes the wordmark inside .brand, so allow markup between (docs/claude/code-notes.md).
-    expect(html).toMatch(/class="brand"[\s\S]*?Badger Journals/);
-    expect(html).toMatch(/data-astro-cid/); // scoped brand styles compiled onto the chrome
+    expect(html).toMatch(/font-serif[^"]*"[^>]*>Badger Journals/);
   });
 
-  it('Footer renders the branded footer with scoped branding', async () => {
+  it('Footer renders the wordmark and connect links', async () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(Footer);
     expect(html).toContain('Badger Journals');
-    expect(html).toContain('Socials');
-    expect(html).toMatch(/data-astro-cid/);
+    expect(html).toContain('Connect');
   });
 });
