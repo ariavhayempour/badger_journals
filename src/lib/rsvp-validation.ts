@@ -7,6 +7,8 @@ export interface RsvpInput {
   meeting: string;
 }
 
+import { MAX_NAME, MAX_EMAIL } from './limits';
+
 export type RsvpField = 'name' | 'email' | 'meeting';
 
 export interface RsvpFieldError {
@@ -22,10 +24,14 @@ export function validateRsvp(input: RsvpInput): RsvpFieldError[] {
 
   if (input.name.trim() === '') {
     errors.push({ field: 'name', message: 'Please enter your name.' });
+  } else if (input.name.trim().length > MAX_NAME) {
+    errors.push({ field: 'name', message: `Please keep your name under ${MAX_NAME} characters.` });
   }
 
   if (!WISC_EMAIL.test(input.email.trim())) {
     errors.push({ field: 'email', message: 'Please use your @wisc.edu email.' });
+  } else if (input.email.trim().length > MAX_EMAIL) {
+    errors.push({ field: 'email', message: `Please use an email under ${MAX_EMAIL} characters.` });
   }
 
   if (input.meeting.trim() === '') {

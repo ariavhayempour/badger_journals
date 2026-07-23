@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { validateRsvp, type RsvpInput } from '../../lib/rsvp-validation';
+import { checkAbuse } from '../../lib/abuse-guard';
 import { insertRsvp } from '../../db/rsvp';
 
 export const prerender = false;
@@ -7,13 +8,16 @@ export const prerender = false;
 const json = (body: unknown, status: number): Response =>
   new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, clientAddress }) => {
   let body: unknown;
   try {
     body = await request.json();
   } catch {
     return json({ ok: false, code: 'invalid', errors: [] }, 400);
   }
+
+  const blocked = await checkAbuse({ body, endpoint: 'rsvp', clientAddress });
+  if (blocked) return blocked;
 
   const input = coerceInput(body);
   const errors = validateRsvp(input);

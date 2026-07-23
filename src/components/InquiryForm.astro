@@ -1,5 +1,6 @@
 ---
 import type { SubmissionType } from '../db/schema';
+import { MAX_NAME, MAX_EMAIL, MAX_MESSAGE } from '../lib/limits';
 
 interface Props {
   type: SubmissionType; // discriminates the placement; also namespaces element ids so forms coexist
@@ -16,23 +17,28 @@ const statusId = `inq-status-${type}`;
 <form class="inquiry" method="post" action="/api/inquiry" novalidate data-inquiry>
   <div class="inquiry__field">
     <label for={nameId}>Name</label>
-    <input id={nameId} name="name" type="text" autocomplete="name" required aria-describedby={nameErrId} />
+    <input id={nameId} name="name" type="text" autocomplete="name" required maxlength={MAX_NAME} aria-describedby={nameErrId} />
     <p class="inquiry__error" id={nameErrId} data-error-for="name" hidden></p>
   </div>
 
   <div class="inquiry__field">
     <label for={emailId}>Email (@wisc.edu)</label>
-    <input id={emailId} name="email" type="email" autocomplete="email" required aria-describedby={emailErrId} />
+    <input id={emailId} name="email" type="email" autocomplete="email" required maxlength={MAX_EMAIL} aria-describedby={emailErrId} />
     <p class="inquiry__error" id={emailErrId} data-error-for="email" hidden></p>
   </div>
 
   <div class="inquiry__field">
     <label for={messageId}>Message</label>
-    <textarea id={messageId} name="message" rows="5" required aria-describedby={messageErrId}></textarea>
+    <textarea id={messageId} name="message" rows="5" required maxlength={MAX_MESSAGE} aria-describedby={messageErrId}></textarea>
     <p class="inquiry__error" id={messageErrId} data-error-for="message" hidden></p>
   </div>
 
   <input type="hidden" name="type" value={type} />
+
+  <div class="inquiry__hp" aria-hidden="true">
+    <input type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true" />
+  </div>
+
   <button type="submit">Send</button>
 
   <p class="inquiry__status" id={statusId} role="status" aria-live="polite" data-status hidden></p>
@@ -87,6 +93,7 @@ const statusId = `inq-status-${type}`;
         type: String(data.get('type') ?? '') as SubmissionType,
         message: String(data.get('message') ?? ''),
       };
+      const company = String(data.get('company') ?? '');
 
       const clientErrors = validateSubmission(input);
       if (clientErrors.length > 0) {
@@ -101,7 +108,7 @@ const statusId = `inq-status-${type}`;
         const res = await fetch('/api/inquiry', {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
-          body: JSON.stringify(input),
+          body: JSON.stringify({ ...input, company }),
         });
         if (res.status === 201) {
           form.reset();
@@ -111,6 +118,9 @@ const statusId = `inq-status-${type}`;
           const errors = body.errors ?? [];
           errors.forEach((err) => setError(form, err.field, err.message));
           firstInvalid(form, errors);
+        } else if (res.status === 429) {
+          // Values are preserved (no reset) so the user can retry after the window.
+          showStatus(form, "You're doing that too often. Please wait a minute and try again.", 'error');
         } else {
           // Values are preserved (no reset) so the user can retry.
           showStatus(form, 'Something went wrong. Please try again.', 'error');
@@ -139,6 +149,13 @@ const statusId = `inq-status-${type}`;
   .inquiry__field {
     display: grid;
     gap: var(--space-3);
+  }
+  .inquiry__hp {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
   }
   .inquiry__field label {
     font-weight: 500;

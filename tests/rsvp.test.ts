@@ -72,6 +72,7 @@ async function withMockedSql(impl: SqlImpl) {
 afterEach(() => {
   vi.doUnmock('../src/db/client');
   vi.doUnmock('../src/db/rsvp');
+  vi.doUnmock('../src/db/rate-limit');
   vi.resetModules();
 });
 
@@ -110,18 +111,24 @@ describe('insertRsvp', () => {
 
 type InsertResult = { status: 'ok' | 'duplicate' };
 
-// Load the route with insertRsvp replaced, then POST the given raw body string.
-async function postRsvp(rawBody: string, insertImpl?: (i: RsvpInput) => Promise<InsertResult>) {
+// Load the route with insertRsvp and the rate limiter replaced, then POST the given raw body.
+async function postRsvp(
+  rawBody: string,
+  insertImpl?: (i: RsvpInput) => Promise<InsertResult>,
+  rateLimit: () => Promise<number> = async () => 1,
+) {
   vi.resetModules();
   const insertRsvp = vi.fn(insertImpl ?? (async () => ({ status: 'ok' as const })));
   vi.doMock('../src/db/rsvp', () => ({ insertRsvp }));
+  const hitRateLimit = vi.fn(rateLimit);
+  vi.doMock('../src/db/rate-limit', () => ({ hitRateLimit }));
   const { POST } = await import('../src/pages/api/rsvp');
   const request = new Request('http://localhost/api/rsvp', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: rawBody,
   });
-  const res = await POST({ request } as never);
+  const res = await POST({ request, clientAddress: '1.2.3.4' } as never);
   return { res, insertRsvp };
 }
 
@@ -161,6 +168,13 @@ describe('POST /api/rsvp', () => {
     const { res, insertRsvp } = await postRsvp('{ not json');
     expect(res.status).toBe(400);
     expect((await res.json()).ok).toBe(false);
+    expect(insertRsvp).not.toHaveBeenCalled();
+  });
+
+  it('returns 429 rate_limited when over the limit and does not insert', async () => {
+    const { res, insertRsvp } = await postRsvp(JSON.stringify(valid), undefined, async () => 6);
+    expect(res.status).toBe(429);
+    expect(await res.json()).toEqual({ ok: false, code: 'rate_limited' });
     expect(insertRsvp).not.toHaveBeenCalled();
   });
 });
@@ -209,5 +223,15 @@ describe('RsvpForm.astro', () => {
     expect(a).toContain('slug-a');
     expect(b).toContain('slug-b');
     expect(a).not.toContain('slug-b');
+  });
+
+  it('includes a hidden honeypot field kept out of the a11y tree and tab order', async () => {
+    const html = await renderForm(SLUG);
+    const field = /<input[^>]*name="company"[^>]*>/.exec(html);
+    expect(field, 'honeypot input').not.toBeNull();
+    const tag = field![0];
+    expect(tag).toMatch(/aria-hidden="true"/);
+    expect(tag).toMatch(/tabindex="-1"/);
+    expect(tag).toMatch(/autocomplete="off"/);
   });
 });
