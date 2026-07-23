@@ -21,7 +21,6 @@ const view: MeetingView[] = rows.map((r) => ({
 }));
 const today = new Date().toISOString().slice(0, 10);
 const { upcoming } = splitMeetings(view, today);
-const nextMeetings = upcoming.slice(0, 3);
 const nextMeeting = upcoming[0];
 
 const formatNextDate = (isoDate: string) => {
@@ -34,14 +33,7 @@ const formatNextDate = (isoDate: string) => {
   }).format(d);
 };
 
-const wk = new Intl.DateTimeFormat('en-US', { weekday: 'short', timeZone: 'UTC' });
-const mo = new Intl.DateTimeFormat('en-US', { month: 'short', timeZone: 'UTC' });
-const dy = new Intl.DateTimeFormat('en-US', { day: 'numeric', timeZone: 'UTC' });
-const parts = (iso: string) => {
-  const d = new Date(iso);
-  return { wk: wk.format(d), mo: mo.format(d), dy: dy.format(d) };
-};
-const detail = (m: MeetingView) => [m.time, m.location].filter(Boolean).join(' · ');
+
 
 // Flat roster for the marquee; drop unfilled placeholder slots.
 const members = team
@@ -100,7 +92,7 @@ const marquee = [...members, ...members]; // duplicated for a seamless loop
     <dl class="grid grid-cols-2 overflow-hidden rounded-2xl border border-border bg-card shadow-[0_10px_30px_rgb(28_25_23/0.10)] lg:grid-cols-4">
       {[
         { n: '6', l: 'Research areas covered' },
-        { n: '20+', l: 'Student contributors' },
+        { n: '3+', l: 'Student contributors' },
         { n: 'Weekly', l: 'Journal club meetings' },
         { n: 'All', l: 'Majors welcome' },
       ].map((f, i) => (
@@ -117,16 +109,16 @@ const marquee = [...members, ...members]; // duplicated for a seamless loop
     <div>
       <p class="mb-3 text-xs font-bold tracking-[0.14em] text-primary uppercase">Our Mission</p>
       <h2 class="font-serif text-[clamp(1.9rem,3.4vw,2.8rem)] leading-[1.1] font-bold tracking-tight text-balance">
-        Making cutting-edge research accessible to everyone.
+        Making research accessible to everyone.
       </h2>
       <p class="mt-5 max-w-[52ch] text-lg text-muted-foreground">
         As an undergraduate researcher, you are often thrown into research with little understanding of how it works. While vast knowledge is freely available online, finding, reading, and understanding primary literature can be challenging when you're new to research.
       </p>
       <p class="mt-4 max-w-[52ch] text-lg text-muted-foreground">
-        Equally important—and often more difficult—is communicating what you learn. The ability to critically analyze scientific papers and clearly explain complex concepts is essential whether you pursue graduate school, medicine, or industry.
+        Equally important, and often more difficult, is communicating what you learn. The ability to critically analyze scientific papers and clearly explain complex concepts is essential whether you pursue graduate school, medicine, or industry.
       </p>
       <p class="mt-4 max-w-[52ch] text-lg text-muted-foreground">
-        Badger Journals helps undergraduates build these skills through reading, discussing, and writing about research—making scientific literature accessible while helping students become stronger scientists and communicators.
+        Badger Journals helps undergraduates build these skills through reading, discussing, and writing about research, making scientific literature accessible while helping students become stronger scientists and communicators.
       </p>
     </div>
     <div class="rounded-2xl border border-border/80 bg-[#f7f4ee] p-7 shadow-xs sm:p-8">
@@ -142,7 +134,7 @@ const marquee = [...members, ...members]; // duplicated for a seamless loop
             {[formatNextDate(nextMeeting.date), nextMeeting.time].filter(Boolean).join(' · ')}
           </p>
           <p class="mt-4 text-base leading-relaxed text-muted-foreground">
-            {[nextMeeting.location, 'No prep required — drop in and RSVP so we save you a seat.'].filter(Boolean).join('. ')}
+            {nextMeeting.location}
           </p>
           <a
             href="/meetings"
@@ -160,7 +152,7 @@ const marquee = [...members, ...members]; // duplicated for a seamless loop
             Check back soon
           </p>
           <p class="mt-4 text-base leading-relaxed text-muted-foreground">
-            No prep required — drop in and RSVP when our next paper discussion is announced.
+            Location to be announced.
           </p>
           <a
             href="/meetings"
@@ -173,67 +165,31 @@ const marquee = [...members, ...members]; // duplicated for a seamless loop
     </div>
   </section>
 
-  <!-- Meetings preview -->
-  <div class="border-y border-border bg-canvas">
-    <section class="mx-auto max-w-6xl px-6 py-20">
-      <div class="mb-8 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h2 class="font-serif text-[clamp(1.9rem,3.4vw,2.8rem)] font-bold tracking-tight">Upcoming meetings</h2>
-          <p class="mt-2 max-w-[60ch] text-lg text-muted-foreground">
-            Drop in — no prep required. RSVP so we know to save you a seat.
-          </p>
-        </div>
-        <a href="/meetings" class={cn(buttonVariants({ variant: 'outline' }), 'h-10 px-4')}>All meetings →</a>
-      </div>
-      {nextMeetings.length > 0 ? (
-        <ul class="grid gap-4">
-          {nextMeetings.map((m) => {
-            const p = parts(m.date);
-            return (
-              <li class="grid grid-cols-[auto_1fr] items-center gap-6 rounded-2xl border border-border bg-card p-6 transition-shadow hover:shadow-[0_10px_30px_rgb(28_25_23/0.08)] sm:grid-cols-[120px_1fr_auto]">
-                <div class="border-r border-border pr-5 text-center">
-                  <div class="text-xs font-bold tracking-[0.1em] text-primary uppercase">{p.wk} · {p.mo}</div>
-                  <div class="font-serif text-3xl leading-none font-bold tabular-nums">{p.dy}</div>
-                </div>
-                <div class="min-w-0">
-                  {m.title && <p class="font-serif text-xl font-semibold">{m.title}</p>}
-                  {detail(m) && <p class="mt-0.5 text-muted-foreground">{detail(m)}</p>}
-                </div>
-                <a href="/meetings" class={cn(buttonVariants({ variant: 'default' }), 'col-span-2 h-10 w-full justify-center px-4 sm:col-span-1 sm:w-auto')}>RSVP</a>
-              </li>
-            );
-          })}
-        </ul>
-      ) : (
-        <p class="rounded-2xl border border-border bg-card p-8 text-lg text-muted-foreground">
-          Stay tuned for upcoming meetings — check back soon.
-        </p>
-      )}
-    </section>
-  </div>
 
   <!-- Digests -->
-  <section class="mx-auto max-w-6xl px-6 py-20">
-    <h2 class="font-serif text-[clamp(1.9rem,3.4vw,2.8rem)] font-bold tracking-tight">Digests across the sciences</h2>
-    <p class="mt-2 mb-9 max-w-[60ch] text-lg text-muted-foreground">
-      Student-written reviews in the fields our members care about — with room for more.
-    </p>
-    <ul class="grid gap-5 [grid-template-columns:repeat(auto-fit,minmax(250px,1fr))]">
-      {researchAreas.slice(0, 3).map((a) => (
-        <li class="rounded-2xl border border-border bg-card p-7 transition-all hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgb(28_25_23/0.08)]">
-          <p class="mb-3 text-3xl" aria-hidden="true">{a.icon}</p>
-          <h3 class="font-serif text-xl font-bold">{a.title}</h3>
-          <p class="mt-2 text-muted-foreground">{a.description}</p>
+  <div class="border-y border-border bg-[#f7f4ee]">
+    <section class="mx-auto max-w-6xl px-6 py-20">
+      <h2 class="font-serif text-[clamp(1.9rem,3.4vw,2.8rem)] font-bold tracking-tight">Digests across the sciences</h2>
+      <p class="mt-2 mb-9 max-w-[60ch] text-lg text-muted-foreground">
+        Student-written reviews in the fields our members care about.
+      </p>
+      <ul class="grid gap-5 [grid-template-columns:repeat(auto-fit,minmax(250px,1fr))]">
+        {researchAreas.slice(0, 3).map((a) => (
+          <li class="rounded-2xl border border-border bg-card p-7 shadow-[0_10px_30px_rgb(28_25_23/0.06)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_36px_rgb(28_25_23/0.1)]">
+            <p class="mb-3 text-3xl" aria-hidden="true">{a.icon}</p>
+            <h3 class="font-serif text-xl font-bold">{a.title}</h3>
+            <p class="mt-2 text-muted-foreground">{a.description}</p>
+          </li>
+        ))}
+        <li class="rounded-2xl border-2 border-dashed border-primary/40 bg-card p-7">
+          <p class="mb-3 text-3xl" aria-hidden="true">✨</p>
+          <h3 class="font-serif text-xl font-bold">Your field</h3>
+          <p class="mt-2 text-muted-foreground">Passionate about an area not listed? Help us launch the next digest.</p>
+          <a href="/create-next-digest" class="mt-3 inline-block font-semibold text-primary hover:underline">Get started →</a>
         </li>
-      ))}
-      <li class="rounded-2xl border border-primary/20 bg-cardinal-tint p-7">
-        <p class="mb-3 text-3xl" aria-hidden="true">✨</p>
-        <h3 class="font-serif text-xl font-bold">Your field</h3>
-        <p class="mt-2 text-cardinal-700">Passionate about an area not listed? Help us launch the next digest.</p>
-        <a href="/create-next-digest" class="mt-3 inline-block font-semibold text-primary hover:underline">Get started →</a>
-      </li>
-    </ul>
-  </section>
+      </ul>
+    </section>
+  </div>
 
   <!-- Team marquee -->
   <div class="border-y border-border bg-canvas">
@@ -242,7 +198,7 @@ const marquee = [...members, ...members]; // duplicated for a seamless loop
         <div>
           <h2 class="font-serif text-[clamp(1.9rem,3.4vw,2.8rem)] font-bold tracking-tight">Built by Badgers</h2>
           <p class="mt-2 max-w-[60ch] text-lg text-muted-foreground">
-            Undergraduates from across UW–Madison, learning to communicate science.
+            Undergraduates from different majors across UW–Madison.
           </p>
         </div>
         <a href="/team" class={cn(buttonVariants({ variant: 'outline' }), 'h-10 px-4')}>View the whole team →</a>
