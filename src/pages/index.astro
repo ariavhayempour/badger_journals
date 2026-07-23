@@ -206,11 +206,13 @@ const marquee = [...members, ...members]; // duplicated for a seamless loop
       <div class="marquee mt-10">
         <ul class="marquee-track">
           {marquee.map((m, i) => (
-            <li class="w-[210px] shrink-0 rounded-2xl border border-border bg-card p-6 text-center" aria-hidden={i >= members.length ? 'true' : undefined}>
+            <li class="w-[280px] shrink-0 rounded-2xl border border-border bg-card p-6 text-center" aria-hidden={i >= members.length ? 'true' : undefined}>
+              {/* wide enough that the longest role/major stays on one line */}
               <span class="mx-auto mb-3 grid size-16 place-items-center rounded-full border border-border bg-cardinal-tint font-serif text-xl font-bold text-primary">{initials(m.name)}</span>
               <p class="font-serif text-lg font-semibold leading-tight">{m.name}</p>
               <p class="mt-1 text-sm font-semibold text-primary">{m.role}</p>
               <p class="text-sm text-muted-foreground">{m.major}</p>
+              <p class="text-sm text-muted-foreground">{m.classOf}</p>
             </li>
           ))}
         </ul>
