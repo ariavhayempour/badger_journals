@@ -1,5 +1,6 @@
 ---
 import { MAX_NAME, MAX_EMAIL, MAX_MESSAGE } from '../lib/limits';
+import type { SubmissionType } from '../db/schema';
 
 const nameId = `inq-name`;
 const emailId = `inq-email`;
@@ -10,9 +11,16 @@ const emailErrId = `inq-email-err`;
 const messageErrId = `inq-message-err`;
 const statusId = `inq-status`;
 
+interface Props {
+  type?: SubmissionType;
+}
+const { type } = Astro.props;
+
 const field = 'w-full rounded-lg border border-input bg-background px-3 py-2 text-sm shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-[invalid=true]:border-destructive aria-[invalid=true]:ring-destructive/20';
 ---
 <form class="inquiry mt-4 grid gap-4 rounded-2xl border border-border bg-card p-6" method="post" action="/api/inquiry" novalidate data-inquiry>
+  {type && <input type="hidden" name="type" value={type} />}
+
   <div class="grid gap-1.5">
     <label for={nameId} class="text-sm font-medium">Name</label>
     <input id={nameId} name="name" type="text" autocomplete="name" required maxlength={MAX_NAME} aria-describedby={nameErrId} class={`h-10 ${field}`} />
@@ -25,14 +33,16 @@ const field = 'w-full rounded-lg border border-input bg-background px-3 py-2 tex
     <p class="text-sm text-destructive" id={emailErrId} data-error-for="email" hidden></p>
   </div>
 
-  <div class="grid gap-1.5">
-    <label for={typeId} class="text-sm font-medium">What are you reaching out about?</label>
-    <select id={typeId} name="type" required class={`h-10 ${field}`}>
-      <option value="inquiry">General Inquiry</option>
-      <option value="join">Join the Team</option>
-      <option value="digest">Start a Digest</option>
-    </select>
-  </div>
+  {!type && (
+    <div class="grid gap-1.5">
+      <label for={typeId} class="text-sm font-medium">What are you reaching out about?</label>
+      <select id={typeId} name="type" required class={`h-10 ${field}`}>
+        <option value="inquiry">General Inquiry</option>
+        <option value="join">Join the Team</option>
+        <option value="digest">Start a Digest</option>
+      </select>
+    </div>
+  )}
 
   <div class="grid gap-1.5">
     <label for={messageId} class="text-sm font-medium" id="inq-message-label">Message</label>
