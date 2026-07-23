@@ -4,11 +4,13 @@ export const prerender = false;
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import RsvpTable from '../../components/RsvpTable.astro';
 import InquiryTable from '../../components/InquiryTable.astro';
+import EventSummary from '../../components/EventSummary.astro';
 import { listRsvps } from '../../db/rsvp';
 import { listSubmissions } from '../../db/submission';
+import { listEvents } from '../../db/event';
 import { groupRsvpsByMeeting } from '../../lib/rsvp-grouping';
 
-const [rsvps, submissions] = await Promise.all([listRsvps(), listSubmissions()]);
+const [rsvps, submissions, events] = await Promise.all([listRsvps(), listSubmissions(), listEvents()]);
 const groups = groupRsvpsByMeeting(rsvps);
 ---
 <AdminLayout title="Dashboard">
@@ -22,5 +24,10 @@ const groups = groupRsvpsByMeeting(rsvps);
   <section aria-labelledby="submissions-heading">
     <h2 id="submissions-heading">Submissions</h2>
     <InquiryTable submissions={submissions} />
+  </section>
+
+  <section aria-labelledby="events-heading">
+    <h2 id="events-heading">Events</h2>
+    <EventSummary events={events} />
   </section>
 </AdminLayout>
