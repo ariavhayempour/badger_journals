@@ -1,0 +1,19 @@
+---
+// Embedded Clerk sign-in, reachable while signed-out; hash routing keeps sign-in sub-states on /admin/login. See docs/claude/0011-admin-auth.md
+export const prerender = false;
+import { SignIn } from '@clerk/astro/components';
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Sign in · Badger Journals Admin</title>
+  </head>
+  <body>
+    <div style="display:flex;min-height:100vh;align-items:center;justify-content:center">
+      <SignIn routing="hash" forceRedirectUrl="/admin" />
+    </div>
+  </body>
+</html>
