@@ -15,9 +15,9 @@ rows per request, so any create/edit/delete shows on the next visit with no rede
 | `id`         | `BIGINT` identity PK | stable handle in the `/admin/events/[id]` edit URL    |
 | `slug`       | `TEXT NOT NULL UNIQUE` | value `rsvps.meeting` points at (no FK); regenerated on edit |
 | `date`       | `TEXT NOT NULL` | ISO `YYYY-MM-DD`; sorts lexicographically, matching `splitMeetings` |
-| `title`      | `TEXT`        | optional                                                     |
-| `time`       | `TEXT`        | optional (human string, e.g. `6:00 PM`)                      |
-| `location`   | `TEXT`        | optional                                                     |
+| `title`      | `TEXT`        | nullable column (legacy rows); `validateEvent` requires it on every create/edit |
+| `time`       | `TEXT`        | nullable column (legacy rows); required going forward (human string, e.g. `6:00 PM`) |
+| `location`   | `TEXT`        | nullable column (legacy rows); `validateEvent` requires it on every create/edit |
 | `created_at` | `TIMESTAMPTZ` | `DEFAULT now()`                                              |
 
 Plus `events_date_idx` on `(date)`. `src/db/schema.ts` hand-mirrors this as `EventRow`,
@@ -80,19 +80,29 @@ title/meta coverage lives in `tests/meetings.test.ts`, and the full-page render 
 
 ## Pieces
 
-- `src/lib/event-validation.ts` — pure `validateEvent()` (required date; ISO `YYYY-MM-DD` shape +
-  a round-trip that rejects calendar overflows like `2026-13-40` / `2026-02-30`; optional fields
-  length-capped) and `slugifyEvent()`. Browser-safe: no `node:*`/DB imports.
+- `src/lib/event-validation.ts` — pure `validateEvent()`: date, title, time, and location are all
+  required (each field either flags an empty value or, once non-empty, a length cap), plus the
+  round-trip that rejects calendar overflows like `2026-13-40` / `2026-02-30` for date. Also
+  `slugifyEvent()`. Browser-safe: no `node:*`/DB imports.
 - `src/lib/split-meetings.ts` — relocated pure `splitMeetings()` + `MeetingView` (from the deleted
-  data module).
+  data module). Used by the public `/meetings` page only; the admin list (below) stays a single
+  chronological table, not split.
 - `src/lib/limits.ts` — adds `MAX_TITLE` (200), `MAX_TIME` (60), `MAX_LOCATION` (200).
 - `src/db/event.ts` — thin tagged-template `listEvents`/`getEvent`/`insertEvent`/`updateEvent`/
-  `deleteEvent`; inputs trimmed, empty optionals stored as `NULL`.
-- `src/components/EventForm.astro` — shared create/edit fields with inline per-field error slots and
-  submitted-value repopulation.
-- `src/pages/admin/events/index.astro` — list + empty state + create + per-row delete (native
-  `confirm()`, still works without JS).
-- `src/pages/admin/events/[id].astro` — edit form; `404` on non-numeric or missing id.
+  `deleteEvent`; inputs trimmed. `title`/`time`/`location` stay nullable at the DB layer (legacy
+  rows predate the required-field rule) — an empty string still normalizes to `NULL` defensively,
+  though the form no longer submits one.
+- `src/components/EventForm.astro` — shared create/edit fields (dense 2-col layout: date+time,
+  then title, then location, all `required`) with inline per-field error slots and submitted-value
+  repopulation.
+- `src/pages/admin/events/index.astro` — list + empty state + create. Client-side (vanilla
+  `<script>`, no framework) search box filters by title/location, and the Date/Title column
+  headers are click-to-sort (`aria-sort`, toggling asc/desc) — same no-build-step pattern as
+  `InquiryFilters.astro`/`InquiryTable.astro`. Default order is unchanged: `listEvents()`'s
+  `date DESC`, i.e. most recent first, oldest at the bottom. Delete lives on the edit page's
+  Danger Zone, not per-row here.
+- `src/pages/admin/events/[id].astro` — edit form; `404` on non-numeric or missing id; Danger Zone
+  (delete) renders via `Panel` with `tone="destructive"`.
 
 ## Testing
 

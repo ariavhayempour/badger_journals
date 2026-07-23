@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { validateEvent, slugifyEvent, type EventInput } from '../../src/lib/event-validation';
+import { validateEvent, slugifyEvent, extractTime, type EventInput } from '../../src/lib/event-validation';
 import { MAX_TITLE, MAX_TIME, MAX_LOCATION } from '../../src/lib/limits';
 
 const valid: EventInput = {
@@ -41,9 +41,21 @@ describe('validateEvent — date', () => {
   });
 });
 
-describe('validateEvent — optional fields', () => {
-  it('accepts empty title/time/location', () => {
-    expect(validateEvent({ date: '2026-09-12', title: '', time: '', location: '' })).toEqual([]);
+describe('validateEvent — required fields', () => {
+  it('flags a missing title', () => {
+    expect(fields({ ...valid, title: '' })).toContain('title');
+  });
+
+  it('flags a whitespace-only title', () => {
+    expect(fields({ ...valid, title: '   ' })).toContain('title');
+  });
+
+  it('flags a missing time', () => {
+    expect(fields({ ...valid, time: '' })).toContain('time');
+  });
+
+  it('flags a missing location', () => {
+    expect(fields({ ...valid, location: '' })).toContain('location');
   });
 
   it('flags an over-length title', () => {
@@ -68,8 +80,10 @@ describe('validateEvent — valid input', () => {
     expect(validateEvent(valid)).toEqual([]);
   });
 
-  it('returns no errors for a date-only event', () => {
-    expect(validateEvent({ date: '2026-09-12', title: '', time: '', location: '' })).toEqual([]);
+  it('flags every field when only whitespace is given', () => {
+    expect(fields({ date: '', title: '', time: '', location: '' })).toEqual(
+      expect.arrayContaining(['date', 'title', 'time', 'location']),
+    );
   });
 });
 
@@ -98,3 +112,40 @@ describe('slugifyEvent', () => {
     expect(slugifyEvent('2026-09-12', 'Kickoff')).toBe(slugifyEvent('2026-09-12', 'Kickoff'));
   });
 });
+
+describe('extractTime', () => {
+  it('prefers explicit time field if provided', () => {
+    const form = new FormData();
+    form.append('time', '6:00 PM');
+    expect(extractTime(form)).toBe('6:00 PM');
+  });
+
+  it('combines time_val and time_ampm', () => {
+    const form = new FormData();
+    form.append('time_val', '6:00');
+    form.append('time_ampm', 'PM');
+    expect(extractTime(form)).toBe('6:00 PM');
+  });
+
+  it('handles AM correctly', () => {
+    const form = new FormData();
+    form.append('time_val', '10:30');
+    form.append('time_ampm', 'AM');
+    expect(extractTime(form)).toBe('10:30 AM');
+  });
+
+  it('does not duplicate AM/PM if typed in time_val', () => {
+    const form = new FormData();
+    form.append('time_val', '6:00 PM');
+    form.append('time_ampm', 'PM');
+    expect(extractTime(form)).toBe('6:00 PM');
+  });
+
+  it('returns empty string if time_val is empty', () => {
+    const form = new FormData();
+    form.append('time_val', '  ');
+    form.append('time_ampm', 'PM');
+    expect(extractTime(form)).toBe('');
+  });
+});
+

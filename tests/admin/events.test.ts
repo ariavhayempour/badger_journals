@@ -175,13 +175,18 @@ describe('POST /admin/events/[id] — update', () => {
   it('updates a valid event and redirects 303 to /admin/events', async () => {
     const { Comp, updateEvent } = await loadEdit({ event: eventRow });
     const request = postForm(
-      { _action: 'update', date: '2099-11-01', title: 'Renamed', time: '', location: '' },
+      { _action: 'update', date: '2099-11-01', title: 'Renamed', time: '6:00 PM', location: 'Chamberlin Hall 2103' },
       'http://localhost/admin/events/42',
     );
     const res = await (await AstroContainer.create()).renderToResponse(Comp, { params: { id: '42' }, request });
     expect(res.status).toBe(303);
     expect(res.headers.get('location')).toBe('/admin/events');
-    expect(updateEvent).toHaveBeenCalledWith(42, { date: '2099-11-01', title: 'Renamed', time: '', location: '' });
+    expect(updateEvent).toHaveBeenCalledWith(42, {
+      date: '2099-11-01',
+      title: 'Renamed',
+      time: '6:00 PM',
+      location: 'Chamberlin Hall 2103',
+    });
   });
 
   it('re-renders 400 with an inline error for a missing date and does not update', async () => {
