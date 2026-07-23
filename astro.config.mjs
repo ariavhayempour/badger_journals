@@ -12,6 +12,14 @@ export default defineConfig({
 
   output: 'server',
 
+  // Trusts the production host so /_image's self-fetch doesn't fall back to "localhost". See docs/claude/0015-image-allowed-domains.md
+  security: {
+    allowedDomains: [
+      { hostname: 'www.badgerjournals.org', protocol: 'https' },
+      { hostname: 'badgerjournals.org', protocol: 'https' },
+    ],
+  },
+
   // Clerk provides hosted admin auth; sign-out returns to the admin gate.
   integrations: [clerk({ afterSignOutUrl: '/admin/login' }), react()],
 
