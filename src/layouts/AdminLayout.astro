@@ -13,12 +13,12 @@ import { listSubmissions } from '../db/submission';
 interface Props {
   title: string;
   rsvpsCount?: number;
-  submissionsCount?: number;
+  unreadSubmissionsCount?: number;
 }
-const { title, rsvpsCount: propRsvps, submissionsCount: propSubmissions } = Astro.props;
+const { title, rsvpsCount: propRsvps, unreadSubmissionsCount: propUnreadSubmissions } = Astro.props;
 
 const rsvpsCount = propRsvps ?? (await listRsvps()).length;
-const submissionsCount = propSubmissions ?? (await listSubmissions()).length;
+const unreadSubmissionsCount = propUnreadSubmissions ?? (await listSubmissions()).filter((s) => !s.is_read).length;
 
 const current = Astro.url.pathname;
 const isActive = (href: string) => (href === '/admin' ? current === '/admin' : current.startsWith(href));
@@ -27,7 +27,7 @@ const links: AdminLink[] = [
   { href: '/admin', label: 'Dashboard', icon: 'dashboard', active: isActive('/admin') },
   { href: '/admin/events', label: 'Events', icon: 'events', active: isActive('/admin/events') },
   { href: '/admin/rsvps', label: 'RSVPs', icon: 'rsvps', count: rsvpsCount, active: isActive('/admin/rsvps') },
-  { href: '/admin/submissions', label: 'Submissions', icon: 'submissions', count: submissionsCount, active: isActive('/admin/submissions') },
+  { href: '/admin/submissions', label: 'Submissions', icon: 'submissions', count: unreadSubmissionsCount, active: isActive('/admin/submissions') },
 ];
 
 // Inline icons keep the desktop sidebar server-rendered (no hydration).
@@ -47,10 +47,10 @@ const icons: Record<AdminLink['icon'], string> = {
     <link rel="preconnect" href="https://clerk.accounts.dev" />
     <title>{title} · Badger Journals Admin</title>
   </head>
-  <body class="min-h-dvh bg-canvas text-foreground">
+  <body class="flex min-h-dvh flex-col bg-canvas text-foreground">
     <Header adminLinks={links} />
 
-    <div class="mx-auto flex w-full max-w-[1440px]">
+    <div class="mx-auto flex w-full max-w-[1440px] flex-1">
       <aside class="hidden w-60 shrink-0 border-r border-sidebar-border bg-sidebar lg:block">
         <nav class="sticky top-4 grid gap-1 p-3">
           <p class="px-3 pt-2 pb-1 text-[0.68rem] font-bold tracking-[0.14em] text-muted-foreground uppercase">Manage</p>
@@ -67,12 +67,14 @@ const icons: Record<AdminLink['icon'], string> = {
                 <path d={icons[l.icon]} />
               </svg>
               {l.label}
-              {l.count != null && l.count > 0 && (
-                <span class:list={[
+              <span
+                id={l.icon === 'submissions' ? 'nav-submissions-count' : undefined}
+                class:list={[
                   'ml-auto grid h-5 min-w-[22px] place-items-center rounded-full px-1.5 text-xs font-bold',
                   l.active ? 'bg-primary text-primary-foreground' : 'bg-black/[0.06] text-muted-foreground',
-                ]}>{l.count}</span>
-              )}
+                  (l.count == null || l.count === 0) && 'hidden',
+                ]}
+              >{l.count ?? 0}</span>
             </a>
           ))}
         </nav>
@@ -82,5 +84,16 @@ const icons: Record<AdminLink['icon'], string> = {
         <slot />
       </main>
     </div>
+
+    <script>
+      const submissionsBadge = document.getElementById('nav-submissions-count');
+      if (submissionsBadge) {
+        document.addEventListener('submissions:changed', () => {
+          const unread = document.querySelectorAll('tr[data-id][data-read="false"]').length;
+          submissionsBadge.textContent = String(unread);
+          submissionsBadge.classList.toggle('hidden', unread === 0);
+        });
+      }
+    </script>
   </body>
 </html>

@@ -17,8 +17,8 @@ export async function insertSubmission(input: SubmissionInput): Promise<void> {
             VALUES (${input.name.trim()}, ${input.email.trim()}, ${input.type}, ${input.message.trim()})`;
 }
 
-export async function markSubmissionRead(id: number): Promise<void> {
-  await sql`UPDATE submissions SET is_read = true WHERE id = ${id}`;
+export async function setSubmissionRead(id: number, isRead: boolean): Promise<void> {
+  await sql`UPDATE submissions SET is_read = ${isRead} WHERE id = ${id}`;
 }
 
 export async function deleteSubmission(id: number): Promise<void> {

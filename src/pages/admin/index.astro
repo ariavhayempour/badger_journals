@@ -36,7 +36,7 @@ const ICON = {
 const now = new Date();
 const todayLabel = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 ---
-<AdminLayout title="Dashboard" rsvpsCount={rsvps.length} submissionsCount={submissions.length}>
+<AdminLayout title="Dashboard" rsvpsCount={rsvps.length} unreadSubmissionsCount={submissions.filter((s) => !s.is_read).length}>
   <PageHeader title="Dashboard" subtitle={`A snapshot of club activity — ${todayLabel}.`} />
 
   <div class="mb-8 grid gap-4 sm:grid-cols-3">
