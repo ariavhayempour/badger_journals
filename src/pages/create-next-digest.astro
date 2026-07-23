@@ -1,6 +1,7 @@
 ---
 export const prerender = true;
 import BaseLayout from '../layouts/BaseLayout.astro';
+import InquiryForm from '../components/InquiryForm.astro';
 import { researchAreas } from '../data/research-areas';
 ---
 <BaseLayout
@@ -39,6 +40,12 @@ import { researchAreas } from '../data/research-areas';
         <a href="/contact">Get in touch →</a>
       </li>
     </ul>
+  </section>
+
+  <section>
+    <h2>Propose a Digest</h2>
+    <p>Have a field in mind? Pitch it to us and we'll help you get started.</p>
+    <InquiryForm type="digest" />
   </section>
 </BaseLayout>
 <style>

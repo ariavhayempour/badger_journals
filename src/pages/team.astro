@@ -1,6 +1,7 @@
 ---
 export const prerender = true;
 import BaseLayout from '../layouts/BaseLayout.astro';
+import InquiryForm from '../components/InquiryForm.astro';
 import { Image } from 'astro:assets';
 import { team } from '../data/team';
 import placeholderAvatar from '../assets/images/placeholder-avatar.jpg';
@@ -34,6 +35,11 @@ import placeholderAvatar from '../assets/images/placeholder-avatar.jpg';
       </ul>
     </section>
   ))}
+  <section>
+    <h2>Join the Team</h2>
+    <p>Want to write, edit, or design for Badger Journals? Tell us a bit about yourself.</p>
+    <InquiryForm type="join" />
+  </section>
 </BaseLayout>
 <style>
   section ul {
