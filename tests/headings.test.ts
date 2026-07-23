@@ -6,7 +6,6 @@ vi.mock('../src/db/event', () => ({ listEvents: async () => [] }));
 
 import Index from '../src/pages/index.astro';
 import Meetings from '../src/pages/meetings.astro';
-import Mission from '../src/pages/mission.astro';
 import Team from '../src/pages/team.astro';
 import CreateNextDigest from '../src/pages/create-next-digest.astro';
 import Contact from '../src/pages/contact.astro';
@@ -15,7 +14,6 @@ import Contact from '../src/pages/contact.astro';
 const PAGES = [
   { name: 'index', Comp: Index },
   { name: 'meetings', Comp: Meetings },
-  { name: 'mission', Comp: Mission },
   { name: 'team', Comp: Team },
   { name: 'create-next-digest', Comp: CreateNextDigest },
   { name: 'contact', Comp: Contact },

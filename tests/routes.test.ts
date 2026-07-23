@@ -1,13 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
-import Mission from '../src/pages/mission.astro';
 import Team from '../src/pages/team.astro';
 import CreateNextDigest from '../src/pages/create-next-digest.astro';
 import Contact from '../src/pages/contact.astro';
 
 // /meetings is now SSR, so it moved out of this fully-static set (docs/claude/0013-events-admin.md).
 const STATIC_PAGES = [
-  { name: 'mission', Comp: Mission, title: 'Mission · Badger Journals', ogTitle: 'Mission', h1: 'Making scientific research accessible to everyone.' },
   { name: 'team', Comp: Team, title: 'Our Team · Badger Journals', ogTitle: 'Our Team', h1: 'Built by Badgers.' },
   { name: 'create-next-digest', Comp: CreateNextDigest, title: 'Create the Next Digest · Badger Journals', ogTitle: 'Create the Next Digest', h1: 'Create the next digest.' },
   { name: 'contact', Comp: Contact, title: 'Contact Us · Badger Journals', ogTitle: 'Contact Us', h1: 'Get in touch.' },
