@@ -1,0 +1,44 @@
+import { describe, it, expect } from 'vitest';
+import { experimental_AstroContainer as AstroContainer } from 'astro/container';
+import InquiryTable from '../../src/components/InquiryTable.astro';
+import type { SubmissionRow } from '../../src/db/schema';
+
+async function render(submissions: SubmissionRow[]): Promise<string> {
+  const container = await AstroContainer.create();
+  return container.renderToString(InquiryTable, { props: { submissions } });
+}
+
+const sample: SubmissionRow = {
+  id: 7,
+  name: 'Grace Hopper',
+  email: 'grace@wisc.edu',
+  submission_type: 'inquiry',
+  message: 'When is the next meeting?',
+  created_at: '2026-07-10T15:30:00.000Z',
+};
+
+describe('InquiryTable', () => {
+  it('shows an empty state when there are no submissions', async () => {
+    const html = await render([]);
+    expect(html).toContain('No submissions yet.');
+    expect(html).not.toContain('<table');
+  });
+
+  it('renders name, email, type, and message for a submission', async () => {
+    const html = await render([sample]);
+    expect(html).not.toContain('No submissions yet.');
+    expect(html).toContain('Grace Hopper');
+    expect(html).toContain('grace@wisc.edu');
+    expect(html).toContain('inquiry');
+    expect(html).toContain('When is the next meeting?');
+  });
+
+  it('renders one row per submission', async () => {
+    const html = await render([
+      sample,
+      { ...sample, id: 8, name: 'Ada Lovelace', email: 'ada@wisc.edu' },
+    ]);
+    expect(html).toContain('Grace Hopper');
+    expect(html).toContain('Ada Lovelace');
+  });
+});
