@@ -1,10 +1,28 @@
 # Badger Journals
 
-Web platform for Badger Journals, built on **Astro 5** (SSR) and deployed to **Vercel**.
+The website for **Badger Journals**, a student-run journal club at UW–Madison making
+cutting-edge research accessible. Built on **Astro 5** (SSR) with **React** islands and
+**Tailwind CSS 4**, backed by **Neon** Postgres, and deployed to **Vercel**.
 
-This repository is currently the project scaffold: a placeholder home route, a per-request
-SSR health route, and a green test harness. Branding, forms, and the submission backend arrive
-in later stories.
+The site has two registers:
+
+- **Public** — a marketing/brand surface (home, meetings, team, contact, submissions) where
+  visitors learn about the club, see meeting logistics, and RSVP or submit in a couple of clicks.
+- **`/admin`** — a Clerk-authenticated dashboard where officers manage events, review RSVPs,
+  and triage submissions.
+
+See [`PRODUCT.md`](PRODUCT.md) for the product brief and [`docs/claude/`](docs/claude/) for
+architecture and per-feature decision records.
+
+## Tech stack
+
+- **Astro 5** with `output: 'server'` (SSR via the `@astrojs/vercel` adapter)
+- **React 19** islands (`@astrojs/react`) with **shadcn/ui** + **Base UI** components
+- **Tailwind CSS 4** (`@tailwindcss/vite`), self-hosted fonts via `@fontsource`
+- **Clerk** (`@clerk/astro`) for hosted admin auth
+- **Neon** serverless Postgres (`@neondatabase/serverless`) with raw SQL migrations — no ORM
+- **Vitest** for the test suite; **Lighthouse CI** for performance/a11y gates
+- TypeScript strict mode throughout
 
 ## Prerequisites
 
@@ -22,7 +40,23 @@ corepack enable
 
 ```bash
 pnpm install
+cp .env.example .env    # then fill in real values (see Environment below)
 ```
+
+### Environment
+
+Local dev reads `.env` (and `.env.local`); both are gitignored — never commit real values.
+See [`.env.example`](.env.example) for the full list.
+
+| Variable | Purpose |
+|---|---|
+| `DATABASE_URL` | Neon Postgres connection string (injected as a Vercel secret in prod) |
+| `PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk publishable key (public, exposed to the client) |
+| `CLERK_SECRET_KEY` | Clerk secret key (server-only) |
+| `PUBLIC_CLERK_SIGN_IN_URL` | Canonical sign-in path — the embedded admin login (`/admin/login`) |
+
+Pull the Vercel-managed values locally with `npx vercel env pull .env`. Admins are
+provisioned via Clerk Restricted mode — there is no public self-serve sign-up.
 
 ## Commands
 
@@ -50,13 +84,14 @@ The `time` value changes on every request.
 ## Database & migrations
 
 The durable data layer is **Neon** serverless Postgres (via the Vercel Marketplace
-integration), accessed with `@neondatabase/serverless` and raw SQL migrations — no ORM.
-Credentials come from `DATABASE_URL` (a Vercel env secret; `.env` locally, never committed).
+integration), accessed with `@neondatabase/serverless` and raw SQL migrations under
+[`migrations/`](migrations/) — no ORM. Credentials come from `DATABASE_URL` (a Vercel env
+secret; `.env` locally, never committed).
 
 ```bash
 npx vercel env pull .env                                   # get DATABASE_URL locally
 DATABASE_URL="$DATABASE_URL_UNPOOLED" pnpm db:migrate       # apply migrations (unpooled url)
-node --env-file=.env --experimental-strip-types scripts/db-check.ts   # connectivity check
+pnpm db:check                                              # connectivity check
 ```
 
 Full details — provisioning, secret handling, the schema, and how to add a migration — are
@@ -66,20 +101,30 @@ in [`docs/claude/0006-database.md`](docs/claude/0006-database.md).
 
 ```
 .
-├── astro.config.mjs        Astro config: server output + Vercel adapter
+├── astro.config.mjs        Astro config: server output, Vercel adapter, Clerk, React, Tailwind
 ├── tsconfig.json           extends astro/tsconfigs/strict
 ├── vitest.config.ts        Vitest wired to Astro's Vite config
-├── pnpm-workspace.yaml     pnpm settings (build-script approval, vite dedupe)
-├── package.json
-├── pnpm-lock.yaml
-├── src/
-│   └── pages/
-│       ├── index.astro     placeholder home route (returns 200)
-│       └── api/
-│           └── health.ts   SSR route, rendered per request
-└── tests/
-    └── health.test.ts      smoke test for the health route
+├── components.json         shadcn/ui config
+├── lighthouserc.json       Lighthouse CI budgets
+├── migrations/             raw SQL migrations (0001_init.sql, …), applied in order
+├── scripts/                migrate.ts, db-check.ts (Node 22 native TS)
+├── docs/claude/            architecture + per-feature decision records
+└── src/
+    ├── middleware.ts       Clerk auth context + the /admin redirect gate
+    ├── layouts/            BaseLayout (public shell) + AdminLayout
+    ├── pages/
+    │   ├── index.astro     home (+ meetings, team, contact, create-next-digest)
+    │   ├── api/            SSR endpoints: health, rsvp, inquiry
+    │   └── admin/          dashboard, events, rsvps, submissions, login (+ admin APIs)
+    ├── components/         Astro + React (islands under ui/, admin/)
+    ├── db/                 Neon client + query modules (event, rsvp, submission, rate-limit)
+    ├── lib/                validation, guards, abuse protection, calendar/meeting helpers
+    ├── data/               static typed content (team roster, research areas)
+    └── styles/global.css   Tailwind entry + brand tokens (UW Cardinal red anchor)
 ```
+
+Public pages render statically where they can; `/`, `/meetings`, every `/admin` route, and
+all `/api` endpoints set `prerender = false` for per-request SSR.
 
 ## Deployment
 
@@ -87,9 +132,11 @@ Hosting is **Vercel**, with continuous deployment from GitHub:
 
 1. In Vercel, import this GitHub repository (framework preset: **Astro**, Node **22**).
 2. Vercel builds with the `@astrojs/vercel` adapter for SSR on serverless functions.
-3. Every push to **`main`** triggers an automatic production deployment at the project's live URL.
+3. Every push to **`main`** triggers an automatic production deployment at the live URL
+   (`https://www.badgerjournals.org`).
 
-The Neon integration injects `DATABASE_URL` (and `DATABASE_URL_UNPOOLED`) into the Vercel
-environment; set the Vercel project's build Node version to **22** to match `engines.node`.
-Verify a deploy by hitting the live `/` (expect HTTP 200) and `/api/health` twice (the `time`
-value should differ between requests, confirming SSR in production).
+The Neon integration injects `DATABASE_URL` (and `DATABASE_URL_UNPOOLED`) and the Clerk
+integration supplies the `CLERK_*` keys into the Vercel environment; set the Vercel
+project's build Node version to **22** to match `engines.node`. Verify a deploy by hitting
+the live `/` (expect HTTP 200) and `/api/health` twice (the `time` value should differ
+between requests, confirming SSR in production).
