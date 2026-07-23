@@ -8,7 +8,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "dev": "astro dev",
+    "dev": "sh -c 'set -a; [ -f .env ] && . ./.env; [ -f .env.local ] && . ./.env.local; set +a; exec astro dev'",
     "build": "astro check && astro build",
     "preview": "astro preview",
     "typecheck": "astro check",
