@@ -37,13 +37,6 @@ export default function MobileNav({ links }: { links: Link[] }) {
               {l.label}
             </a>
           ))}
-          <a
-            href="/meetings"
-            onClick={() => setOpen(false)}
-            className={cn(buttonVariants({ variant: "default" }), "mt-6 h-11 text-base")}
-          >
-            RSVP to a meeting
-          </a>
         </nav>
       </SheetContent>
     </Sheet>
