@@ -19,7 +19,7 @@ async function loadDashboard(opts: { events?: EventRow[] } = {}) {
   vi.doMock('../../src/db/submission', () => ({ listSubmissions: vi.fn(async () => []) }));
   const listEvents = vi.fn(async () => opts.events ?? []);
   vi.doMock('../../src/db/event', () => ({ listEvents }));
-  const { default: Comp } = await import('../../src/pages/admin/dashboard.astro');
+  const { default: Comp } = await import('../../src/pages/admin/index.astro');
   return { Comp, listEvents };
 }
 
@@ -30,7 +30,7 @@ afterEach(() => {
   vi.resetModules();
 });
 
-describe('GET /admin/dashboard — Events section', () => {
+describe('GET /admin — Events section', () => {
   it('renders an Events section with a link to manage events', async () => {
     const { Comp } = await loadDashboard({ events: [eventRow] });
     const html = await (await AstroContainer.create()).renderToString(Comp);

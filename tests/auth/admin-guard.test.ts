@@ -12,7 +12,7 @@ describe('adminRedirect', () => {
     });
 
     it('redirects a nested admin route to /admin/login', () => {
-      expect(adminRedirect('/admin/dashboard', false)).toBe('/admin/login');
+      expect(adminRedirect('/admin/events', false)).toBe('/admin/login');
     });
   });
 
@@ -32,7 +32,7 @@ describe('adminRedirect', () => {
     });
 
     it('lets a signed-in request to a nested admin route through', () => {
-      expect(adminRedirect('/admin/dashboard', true)).toBeNull();
+      expect(adminRedirect('/admin/events', true)).toBeNull();
     });
   });
 

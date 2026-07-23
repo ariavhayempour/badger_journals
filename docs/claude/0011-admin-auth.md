@@ -36,7 +36,7 @@ request → clerkMiddleware (auth context) → adminRedirect(path, isAuthed) →
   state (e.g. 2FA) stays on `/admin/login`; with path routing Clerk's sub-paths (`.../factor-one`)
   would be caught by the `/admin` guard and redirect-loop. `forceRedirectUrl="/admin"` lands the
   admin on the dashboard after sign-in. No sign-up link is rendered.
-- `src/pages/admin/index.astro` — protected placeholder landing (real content lands in 0012).
+- `src/pages/admin/index.astro` — protected landing; now hosts the dashboard itself (see 0012).
 - `src/layouts/AdminLayout.astro` — admin shell (separate from the public `BaseLayout`; the admin
   area is unlinked and `noindex`). Sign-out is Clerk's `<UserButton>`.
 - After sign-out, `afterSignOutUrl: '/admin/login'` on the `clerk()` integration
@@ -67,7 +67,7 @@ surface. No `admins`/`sessions` table and no new migration.
 - **Unit (CI):** `tests/auth/admin-guard.test.ts` exhaustively covers `adminRedirect`. CI has no
   Clerk secret and never talks to Clerk — the integration itself is the vendor's contract.
 - **Manual (with real keys + a provisioned admin):**
-  1. Signed-out `GET /admin`, `/admin/`, `/admin/dashboard` each redirect to `/admin/login`.
+  1. Signed-out `GET /admin`, `/admin/`, `/admin/events` each redirect to `/admin/login`.
   2. `/admin/login` renders and is reachable signed-out (no loop).
   3. Sign in as a provisioned admin → land on `/admin`.
   4. Sign out (UserButton) → returns to `/admin/login`; re-requesting `/admin` redirects again.

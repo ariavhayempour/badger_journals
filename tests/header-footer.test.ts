@@ -30,11 +30,6 @@ describe('T3 — branded Header (scoped styles, tokens only)', () => {
     expect(html).toMatch(/data-astro-cid/);
   });
 
-  it('links to the admin dashboard from the primary nav', async () => {
-    const container = await AstroContainer.create();
-    const html = await container.renderToString(HeaderCmp);
-    expect(html).toMatch(/<a[^>]*href="\/admin\/dashboard"[^>]*>[^<]*Admin/);
-  });
 });
 
 describe('T3 — branded Footer (scoped styles, tokens only)', () => {
@@ -52,5 +47,11 @@ describe('T3 — branded Footer (scoped styles, tokens only)', () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(FooterCmp);
     expect(html).toMatch(/data-astro-cid/);
+  });
+
+  it('links to the admin dashboard from the footer', async () => {
+    const container = await AstroContainer.create();
+    const html = await container.renderToString(FooterCmp);
+    expect(html).toMatch(/<a[^>]*href="\/admin"[^>]*>[^<]*Admin/);
   });
 });
