@@ -10,7 +10,7 @@ import { groupRsvpsByMeeting } from '../../lib/rsvp-grouping';
 const rsvps = await listRsvps();
 const groups = groupRsvpsByMeeting(rsvps);
 ---
-<AdminLayout title="RSVPs">
+<AdminLayout title="RSVPs" rsvpsCount={rsvps.length}>
   <PageHeader title="RSVPs" subtitle={`${rsvps.length} total, grouped by meeting.`} />
   <RsvpTable groups={groups} />
 </AdminLayout>

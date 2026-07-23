@@ -9,7 +9,7 @@ import { listSubmissions } from '../../db/submission';
 
 const submissions = await listSubmissions();
 ---
-<AdminLayout title="Submissions">
+<AdminLayout title="Submissions" submissionsCount={submissions.length}>
   <PageHeader title="Submissions" subtitle="Inquiries, team applications, and digest pitches." />
   <Panel title="Inbox" count={`${submissions.length} total`}>
     <InquiryTable submissions={submissions} />
