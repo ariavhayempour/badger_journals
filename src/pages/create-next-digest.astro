@@ -1,7 +1,6 @@
 ---
 export const prerender = true;
 import BaseLayout from '../layouts/BaseLayout.astro';
-import InquiryForm from '../components/InquiryForm.astro';
 import { researchAreas } from '../data/research-areas';
 ---
 <BaseLayout
@@ -53,8 +52,10 @@ import { researchAreas } from '../data/research-areas';
     <section class="mx-auto max-w-5xl px-6 py-16">
       <h2 class="font-serif text-2xl font-bold tracking-tight sm:text-3xl">Propose a digest</h2>
       <p class="mt-2 text-lg text-muted-foreground">Have a field in mind? Pitch it to us and we'll help you get started.</p>
-      <div class="mt-4 max-w-xl">
-        <InquiryForm type="digest" />
+      <div class="mt-6">
+        <a href="/contact?type=digest" class="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90">
+          Pitch a digest
+        </a>
       </div>
     </section>
   </div>

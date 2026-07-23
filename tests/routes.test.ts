@@ -1,13 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
-import Mission from '../src/pages/mission.astro';
 import Team from '../src/pages/team.astro';
 import CreateNextDigest from '../src/pages/create-next-digest.astro';
 import Contact from '../src/pages/contact.astro';
 
 // /meetings is now SSR, so it moved out of this fully-static set (docs/claude/0013-events-admin.md).
 const STATIC_PAGES = [
-  { name: 'mission', Comp: Mission, title: 'Mission · Badger Journals', ogTitle: 'Mission', h1: 'Making scientific research accessible to everyone.' },
   { name: 'team', Comp: Team, title: 'Our Team · Badger Journals', ogTitle: 'Our Team', h1: 'Built by Badgers.' },
   { name: 'create-next-digest', Comp: CreateNextDigest, title: 'Create the Next Digest · Badger Journals', ogTitle: 'Create the Next Digest', h1: 'Create the next digest.' },
   { name: 'contact', Comp: Contact, title: 'Contact Us · Badger Journals', ogTitle: 'Contact Us', h1: 'Get in touch.' },
@@ -42,31 +40,22 @@ describe('static route rendering', () => {
 });
 
 describe('contact page inquiry form', () => {
-  it('renders both sections with an inquiry form posting to /api/inquiry', async () => {
+  it('renders contact page with an inquiry form posting to /api/inquiry', async () => {
     const html = await render(Contact);
-    expect(html).toContain('Get involved');
-    expect(html).toContain('Start a new digest');
+    expect(html).toContain('Get in touch');
+    expect(html).toContain('Send us a message');
     expect(html).toMatch(/<form[^>]*action="\/api\/inquiry"/);
-    expect(html).toMatch(/<input[^>]*type="hidden"[^>]*name="type"[^>]*value="inquiry"/);
-  });
-
-  it('keeps "Start a New Digest" as a link to the digest page, not a second form', async () => {
-    const html = await render(Contact);
-    expect(html).toMatch(/href="\/create-next-digest"/);
-    expect((html.match(/<form/g) ?? []).length).toBe(1);
   });
 });
 
-describe('team + create-next-digest inquiry forms', () => {
-  it('team page renders a join form posting to /api/inquiry', async () => {
+describe('team + create-next-digest contact links', () => {
+  it('team page links to contact form with type=join', async () => {
     const html = await render(Team);
-    expect(html).toMatch(/<form[^>]*action="\/api\/inquiry"/);
-    expect(html).toMatch(/<input[^>]*type="hidden"[^>]*name="type"[^>]*value="join"/);
+    expect(html).toMatch(/href="\/contact\?type=join"/);
   });
 
-  it('create-next-digest page renders a digest form posting to /api/inquiry', async () => {
+  it('create-next-digest page links to contact form with type=digest', async () => {
     const html = await render(CreateNextDigest);
-    expect(html).toMatch(/<form[^>]*action="\/api\/inquiry"/);
-    expect(html).toMatch(/<input[^>]*type="hidden"[^>]*name="type"[^>]*value="digest"/);
+    expect(html).toMatch(/href="\/contact\?type=digest"/);
   });
 });

@@ -22,6 +22,17 @@ const view: MeetingView[] = rows.map((r) => ({
 const today = new Date().toISOString().slice(0, 10);
 const { upcoming } = splitMeetings(view, today);
 const nextMeetings = upcoming.slice(0, 3);
+const nextMeeting = upcoming[0];
+
+const formatNextDate = (isoDate: string) => {
+  const d = new Date(isoDate + 'T00:00:00Z');
+  return new Intl.DateTimeFormat('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  }).format(d);
+};
 
 const wk = new Intl.DateTimeFormat('en-US', { weekday: 'short', timeZone: 'UTC' });
 const mo = new Intl.DateTimeFormat('en-US', { month: 'short', timeZone: 'UTC' });
@@ -53,23 +64,24 @@ const marquee = [...members, ...members]; // duplicated for a seamless loop
       alt="Students on the UW–Madison campus at dusk"
       widths={[480, 800, 1200, 1650]}
       sizes="100vw"
-      format="avif"
       loading="eager"
       fetchpriority="high"
     />
     <div class="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgb(20_8_8/0.18),rgb(15_4_4/0.55)_55%,rgb(90_3_6/0.82)),linear-gradient(90deg,rgb(15_4_4/0.62),rgb(15_4_4/0.05)_70%)]"></div>
-    <div class="mx-auto max-w-6xl px-6 pt-32 pb-16 sm:pt-40 sm:pb-20">
-      <p class="mb-6 flex items-center gap-3 text-xs font-bold tracking-[0.18em] text-[#ffd9d9] uppercase">
-        <span class="h-0.5 w-7 bg-[#ff9a9a]"></span>UW–Madison · Student journal club
+    <div class="mx-auto max-w-6xl px-6 py-16 sm:py-20 lg:py-24">
+      <p class="mb-4 flex items-center gap-3 text-xs font-bold tracking-[0.18em] text-[#ffd9d9] uppercase">
+        <span class="h-0.5 w-7 bg-[#ff9a9a]"></span>University of Wisconsin–Madison
       </p>
-      <h1 class="max-w-[15ch] font-serif text-[clamp(2.9rem,7vw,5.5rem)] leading-[1.02] font-extrabold tracking-[-0.03em] text-balance">
-        Research made <em class="font-semibold italic">readable</em>.
+      <h1 class="max-w-[15ch] font-serif text-[clamp(2.75rem,6vw,5rem)] leading-[1.04] font-extrabold tracking-[-0.03em] text-balance">
+        Badger Journals
       </h1>
-      <p class="mt-6 max-w-[46ch] text-lg leading-relaxed text-white/90">
-        We read, discuss, and write about the latest scientific papers — turning dense
-        primary literature into digests any undergraduate can follow.
+      <p class="mt-4 font-serif text-[clamp(1.25rem,2.4vw,1.75rem)] font-semibold text-white/95">
+        Research made <em class="font-semibold italic">Readable</em>.
       </p>
-      <div class="mt-9 flex flex-wrap items-center gap-4">
+      <p class="mt-4 max-w-[46ch] text-base sm:text-lg leading-relaxed text-white/80">
+        We read, discuss, and write about the latest scientific papers, turning complicated literature into digests any undergraduate can follow.
+      </p>
+      <div class="mt-8 flex flex-wrap items-center gap-4">
         <a href="/meetings" class={cn(buttonVariants({ variant: 'default' }), 'h-12 px-6 text-base')}>
           See upcoming meetings
         </a>
@@ -84,7 +96,7 @@ const marquee = [...members, ...members]; // duplicated for a seamless loop
   </section>
 
   <!-- Facts -->
-  <div class="mx-auto -mt-10 max-w-6xl px-6">
+  <div class="relative z-10 mx-auto mt-12 sm:mt-16 max-w-6xl px-6">
     <dl class="grid grid-cols-2 overflow-hidden rounded-2xl border border-border bg-card shadow-[0_10px_30px_rgb(28_25_23/0.10)] lg:grid-cols-4">
       {[
         { n: '6', l: 'Research areas covered' },
@@ -92,8 +104,8 @@ const marquee = [...members, ...members]; // duplicated for a seamless loop
         { n: 'Weekly', l: 'Journal club meetings' },
         { n: 'All', l: 'Majors welcome' },
       ].map((f, i) => (
-        <div class:list={['p-7', i > 0 && 'border-border sm:border-l', i >= 2 && 'lg:border-l', 'border-t sm:border-t-0', i < 2 && 'sm:border-t-0', i === 2 && 'sm:border-t lg:border-t-0']}>
-          <dt class="font-serif text-4xl leading-none font-bold tracking-tight text-primary">{f.n}</dt>
+        <div class:list={['p-6 sm:p-7', i > 0 && 'border-border sm:border-l', i >= 2 && 'lg:border-l', 'border-t sm:border-t-0', i < 2 && 'sm:border-t-0', i === 2 && 'sm:border-t lg:border-t-0']}>
+          <dt class="font-serif text-3xl sm:text-4xl leading-none font-bold tracking-tight text-primary">{f.n}</dt>
           <dd class="mt-2 text-sm font-medium text-muted-foreground">{f.l}</dd>
         </div>
       ))}
@@ -103,35 +115,62 @@ const marquee = [...members, ...members]; // duplicated for a seamless loop
   <!-- What we do -->
   <section class="mx-auto grid max-w-6xl gap-14 px-6 py-20 lg:grid-cols-[1.1fr_1fr] lg:items-start">
     <div>
-      <p class="mb-3 text-xs font-bold tracking-[0.14em] text-primary uppercase">What we do</p>
+      <p class="mb-3 text-xs font-bold tracking-[0.14em] text-primary uppercase">Our Mission</p>
       <h2 class="font-serif text-[clamp(1.9rem,3.4vw,2.8rem)] leading-[1.1] font-bold tracking-tight text-balance">
-        A journal club that turns papers into understanding.
+        Making cutting-edge research accessible to everyone.
       </h2>
       <p class="mt-5 max-w-[52ch] text-lg text-muted-foreground">
-        As an undergraduate, you're often thrown into research with little sense of how it
-        works. Badger Journals is where students learn to find, read, and clearly explain
-        primary literature — skills that carry into grad school, medicine, and industry.
+        As an undergraduate researcher, you are often thrown into research with little understanding of how it works. While vast knowledge is freely available online, finding, reading, and understanding primary literature can be challenging when you're new to research.
       </p>
       <p class="mt-4 max-w-[52ch] text-lg text-muted-foreground">
-        Every week we pick a paper, break it down together, and publish a student-written
-        digest so the next reader gets there faster.
+        Equally important—and often more difficult—is communicating what you learn. The ability to critically analyze scientific papers and clearly explain complex concepts is essential whether you pursue graduate school, medicine, or industry.
+      </p>
+      <p class="mt-4 max-w-[52ch] text-lg text-muted-foreground">
+        Badger Journals helps undergraduates build these skills through reading, discussing, and writing about research—making scientific literature accessible while helping students become stronger scientists and communicators.
       </p>
     </div>
-    <ul class="grid gap-4">
-      {[
-        { n: '01', h: 'Read', p: 'Pick apart a recent paper as a group — methods, claims, and what actually holds up.' },
-        { n: '02', h: 'Discuss', p: 'Debate the findings in a friendly room where no question is too basic.' },
-        { n: '03', h: 'Write', p: 'Turn the discussion into a clear, accessible digest published under your name.' },
-      ].map((p) => (
-        <li class="grid grid-cols-[auto_1fr] gap-5 rounded-2xl border border-border bg-card p-6 transition-shadow hover:shadow-[0_10px_30px_rgb(28_25_23/0.08)]">
-          <span class="font-serif text-2xl leading-none font-bold text-primary">{p.n}</span>
-          <div>
-            <h3 class="font-serif text-xl font-bold">{p.h}</h3>
-            <p class="mt-1 text-muted-foreground">{p.p}</p>
-          </div>
-        </li>
-      ))}
-    </ul>
+    <div class="rounded-2xl border border-border/80 bg-[#f7f4ee] p-7 shadow-xs sm:p-8">
+      <div class="mb-4 border-b border-border/80 pb-3.5">
+        <p class="text-xs font-bold tracking-[0.14em] text-muted-foreground uppercase">Next Meeting</p>
+      </div>
+      {nextMeeting ? (
+        <div>
+          <h3 class="font-serif text-2xl font-bold tracking-tight text-foreground">
+            {nextMeeting.title || 'Journal club meeting'}
+          </h3>
+          <p class="mt-2 text-base font-bold text-primary">
+            {[formatNextDate(nextMeeting.date), nextMeeting.time].filter(Boolean).join(' · ')}
+          </p>
+          <p class="mt-4 text-base leading-relaxed text-muted-foreground">
+            {[nextMeeting.location, 'No prep required — drop in and RSVP so we save you a seat.'].filter(Boolean).join('. ')}
+          </p>
+          <a
+            href="/meetings"
+            class="mt-6 block w-full rounded-xl bg-primary py-3.5 text-center font-bold text-primary-foreground shadow-sm transition-colors hover:bg-cardinal-700"
+          >
+            RSVP
+          </a>
+        </div>
+      ) : (
+        <div>
+          <h3 class="font-serif text-2xl font-bold tracking-tight text-foreground">
+            No upcoming meetings
+          </h3>
+          <p class="mt-2 text-base font-bold text-primary">
+            Check back soon
+          </p>
+          <p class="mt-4 text-base leading-relaxed text-muted-foreground">
+            No prep required — drop in and RSVP when our next paper discussion is announced.
+          </p>
+          <a
+            href="/meetings"
+            class="mt-6 block w-full rounded-xl bg-primary py-3.5 text-center font-bold text-primary-foreground shadow-sm transition-colors hover:bg-cardinal-700"
+          >
+            View all meetings
+          </a>
+        </div>
+      )}
+    </div>
   </section>
 
   <!-- Meetings preview -->

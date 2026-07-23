@@ -63,7 +63,7 @@ describe('BaseLayout.astro', () => {
     });
     expect(html).toContain('<html lang="en"');
     expect(html).toContain('<title>Mission · Badger Journals</title>');
-    expect(html).toContain('href="/mission"'); // header nav present
+    expect(html).toContain('href="/meetings"'); // header nav present
     expect(html).toContain('Madison, WI, 53706'); // footer present
     expect(html).toContain('<p>slot content here</p>'); // slotted page content
   });

@@ -7,7 +7,7 @@ import Panel from '../../../components/admin/Panel.astro';
 import EventForm from '../../../components/EventForm.astro';
 import DeleteEventButton from '../../../components/DeleteEventButton';
 import { getEvent, updateEvent } from '../../../db/event';
-import { validateEvent, type EventFieldError, type EventInput } from '../../../lib/event-validation';
+import { validateEvent, extractTime, type EventFieldError, type EventInput } from '../../../lib/event-validation';
 
 const idParam = Astro.params.id ?? '';
 if (!/^\d+$/.test(idParam)) {
@@ -24,7 +24,7 @@ if (Astro.request.method === 'POST') {
     const input: EventInput = {
       date: String(form.get('date') ?? ''),
       title: String(form.get('title') ?? ''),
-      time: String(form.get('time') ?? ''),
+      time: extractTime(form),
       location: String(form.get('location') ?? ''),
     };
     errors = validateEvent(input);
@@ -59,15 +59,12 @@ const values: Partial<EventInput> = submitted ?? {
     </div>
   </Panel>
 
-  <section class="mt-8 overflow-hidden rounded-2xl border border-destructive/30 bg-card">
-    <div class="border-b border-destructive/20 bg-destructive/5 px-5 py-4">
-      <h2 class="font-serif text-xl font-bold text-destructive">Danger zone</h2>
-    </div>
+  <Panel title="Danger zone" tone="destructive">
     <div class="flex flex-wrap items-center justify-between gap-4 p-5">
       <p class="max-w-[52ch] text-sm text-muted-foreground">
         Deleting this event also removes every RSVP attached to it. This action can't be undone.
       </p>
       <DeleteEventButton client:load id={id} />
     </div>
-  </section>
+  </Panel>
 </AdminLayout>

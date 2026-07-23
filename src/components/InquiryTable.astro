@@ -11,7 +11,7 @@ const formatTimestamp = (iso: string): string =>
   new Date(iso).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
 
 const label: Record<SubmissionType, string> = {
-  inquiry: 'Inquiry',
+  inquiry: 'General',
   join: 'Join the team',
   digest: 'New digest',
 };
@@ -20,7 +20,7 @@ const td = 'border-b border-border/50 px-5 py-3.5 align-top';
 ---
 {
   submissions.length === 0 ? (
-    <p class="rounded-2xl border border-border bg-card p-8 text-muted-foreground">No submissions yet.</p>
+    <p class="px-5 py-8 text-muted-foreground">No submissions yet.</p>
   ) : (
     <div class="overflow-x-auto">
       <table class="w-full border-collapse text-sm">
@@ -31,16 +31,45 @@ const td = 'border-b border-border/50 px-5 py-3.5 align-top';
             <th scope="col" class={th}>Type</th>
             <th scope="col" class={th}>Message</th>
             <th scope="col" class={th}>Received</th>
+            <th scope="col" class={`${th} w-14`} aria-label="Actions"></th>
           </tr>
         </thead>
         <tbody>
           {submissions.map((s) => (
-            <tr class="transition-colors hover:bg-muted/40">
-              <td class={`${td} font-semibold`}>{s.name}</td>
+            <tr
+              class="transition-colors hover:bg-muted/40 cursor-pointer group"
+              data-id={s.id}
+              data-read={s.is_read ? "true" : "false"}
+              data-type={s.submission_type}
+              data-search={`${s.name} ${s.email} ${s.message}`.toLowerCase()}
+              title={s.is_read ? 'Mark as unread' : 'Mark as read'}
+            >
+              <td class={`${td} ${s.is_read ? 'font-medium text-muted-foreground' : 'font-bold'}`}>
+                {!s.is_read && <span class="mr-1.5 inline-block size-2 rounded-full bg-primary" aria-label="Unread"></span>}
+                {s.name}
+              </td>
               <td class={`${td} text-muted-foreground`}>{s.email}</td>
               <td class={td}><Badge variant={s.submission_type}>{label[s.submission_type]}</Badge></td>
-              <td class={`${td} max-w-[40ch] whitespace-pre-wrap text-muted-foreground`}>{s.message}</td>
+              <td class={`${td} max-w-[40ch] whitespace-pre-wrap ${s.is_read ? 'text-muted-foreground' : 'font-medium'}`}>{s.message}</td>
               <td class={`${td} whitespace-nowrap text-muted-foreground`}>{formatTimestamp(s.created_at)}</td>
+              <td class={`${td} w-14 text-center`}>
+                <button
+                  type="button"
+                  style="display: none;"
+                  class="text-destructive hover:bg-destructive/10 p-1.5 rounded-lg transition-colors items-center justify-center"
+                  data-action="delete"
+                  aria-label="Delete submission"
+                  title="Delete submission"
+                >
+                  <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 6h18"></path>
+                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                    <line x1="10" x2="10" y1="11" y2="17"></line>
+                    <line x1="14" x2="14" y1="11" y2="17"></line>
+                  </svg>
+                </button>
+              </td>
             </tr>
           ))}
         </tbody>
@@ -48,3 +77,75 @@ const td = 'border-b border-border/50 px-5 py-3.5 align-top';
     </div>
   )
 }
+{submissions.length > 0 && (
+  <p id="submissions-empty-filtered" class="hidden px-5 py-14 text-center text-muted-foreground">
+    No submissions match these filters.
+  </p>
+)}
+
+<script>
+  const editBtn = document.getElementById('edit-inbox-btn');
+  if (editBtn) {
+    editBtn.addEventListener('click', () => {
+      const isEditing = editBtn.getAttribute('data-editing') === 'true';
+      const nextEditing = !isEditing;
+      editBtn.setAttribute('data-editing', String(nextEditing));
+      editBtn.textContent = nextEditing ? 'Done' : 'Edit';
+
+      document.querySelectorAll<HTMLButtonElement>('[data-action="delete"]').forEach((btn) => {
+        btn.style.display = nextEditing ? 'inline-flex' : 'none';
+      });
+    });
+  }
+
+  document.querySelectorAll<HTMLTableRowElement>('tr[data-id]').forEach(row => {
+    row.addEventListener('click', async (e) => {
+      const id = row.getAttribute('data-id');
+      const target = e.target as HTMLElement;
+      
+      if (target.closest('[data-action="delete"]')) {
+        if (!confirm('Are you sure you want to delete this submission?')) return;
+        row.style.opacity = '0.5';
+        try {
+          const res = await fetch(`/admin/api/submissions/${id}`, { method: 'DELETE' });
+          if (res.ok) {
+            row.remove();
+            document.dispatchEvent(new CustomEvent('submissions:changed'));
+          } else throw new Error();
+        } catch {
+          alert('Failed to delete submission');
+          row.style.opacity = '1';
+        }
+        return;
+      }
+
+      // One-click toggle: unread -> read, read -> unread.
+      const nextRead = row.getAttribute('data-read') !== 'true';
+      row.setAttribute('data-read', String(nextRead));
+      row.title = nextRead ? 'Mark as unread' : 'Mark as read';
+
+      const nameTd = row.children[0] as HTMLElement;
+      const msgTd = row.children[3] as HTMLElement;
+      if (nextRead) {
+        nameTd.className = nameTd.className.replace('font-bold', 'font-medium text-muted-foreground');
+        nameTd.querySelector('span[aria-label="Unread"]')?.remove();
+        msgTd.className = msgTd.className.replace('font-medium', 'text-muted-foreground');
+      } else {
+        nameTd.className = nameTd.className.replace('font-medium text-muted-foreground', 'font-bold');
+        if (!nameTd.querySelector('span[aria-label="Unread"]')) {
+          nameTd.insertAdjacentHTML('afterbegin', '<span class="mr-1.5 inline-block size-2 rounded-full bg-primary" aria-label="Unread"></span>');
+        }
+        msgTd.className = msgTd.className.replace('text-muted-foreground', 'font-medium');
+      }
+      document.dispatchEvent(new CustomEvent('submissions:changed'));
+
+      fetch(`/admin/api/submissions/${id}`, {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ isRead: nextRead }),
+      }).catch(() => {
+        // Silently ignore or revert on error
+      });
+    });
+  });
+</script>

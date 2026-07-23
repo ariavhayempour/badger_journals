@@ -1,7 +1,6 @@
 ---
 export const prerender = true;
 import BaseLayout from '../layouts/BaseLayout.astro';
-import InquiryForm from '../components/InquiryForm.astro';
 import { Image } from 'astro:assets';
 import { team } from '../data/team';
 
@@ -37,7 +36,7 @@ const initials = (name: string) =>
           {group.members.filter((m) => m.name !== 'TODO').map((m) => (
             <li class="rounded-2xl border border-border bg-card p-6 text-center transition-shadow hover:shadow-[0_10px_30px_rgb(28_25_23/0.08)]">
               {m.photo ? (
-                <Image class="mx-auto mb-4 size-24 rounded-full object-cover" src={m.photo} alt={m.name} width={200} height={200} format="avif" loading="lazy" />
+                <Image class="mx-auto mb-4 size-24 rounded-full object-cover" src={m.photo} alt={m.name} width={200} height={200} loading="lazy" />
               ) : (
                 <span class="mx-auto mb-4 grid size-24 place-items-center rounded-full border border-border bg-cardinal-tint font-serif text-2xl font-bold text-primary">{initials(m.name)}</span>
               )}
@@ -55,8 +54,10 @@ const initials = (name: string) =>
       <p class="mt-2 max-w-[60ch] text-lg text-muted-foreground">
         Want to write, edit, or design for Badger Journals? Tell us a bit about yourself.
       </p>
-      <div class="mt-4 max-w-xl">
-        <InquiryForm type="join" />
+      <div class="mt-6">
+        <a href="/contact?type=join" class="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90">
+          Contact us to join
+        </a>
       </div>
     </section>
   </div>

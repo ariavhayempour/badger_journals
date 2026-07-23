@@ -17,6 +17,7 @@ export interface SubmissionRow {
   email: string;
   submission_type: SubmissionType;
   message: string;
+  is_read: boolean;
   created_at: string;
 }
 

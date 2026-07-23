@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Menu, LayoutDashboard, CalendarDays, Users, Inbox } from "lucide-react";
 import {
   Sheet,
@@ -27,6 +27,19 @@ export type AdminLink = {
 
 export default function AdminNav({ links }: { links: AdminLink[] }) {
   const [open, setOpen] = useState(false);
+  const [unreadSubmissions, setUnreadSubmissions] = useState<number | undefined>(
+    links.find((l) => l.icon === "submissions")?.count
+  );
+
+  // Kept in sync with the submissions inbox while it's open in the same tab.
+  useEffect(() => {
+    const handler = () => {
+      setUnreadSubmissions(document.querySelectorAll('tr[data-id][data-read="false"]').length);
+    };
+    document.addEventListener("submissions:changed", handler);
+    return () => document.removeEventListener("submissions:changed", handler);
+  }, []);
+
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger
@@ -45,6 +58,7 @@ export default function AdminNav({ links }: { links: AdminLink[] }) {
         <nav className="grid gap-1 px-3 pb-6">
           {links.map((l) => {
             const Icon = ICONS[l.icon];
+            const count = l.icon === "submissions" ? unreadSubmissions : l.count;
             return (
               <a
                 key={l.href}
@@ -60,14 +74,14 @@ export default function AdminNav({ links }: { links: AdminLink[] }) {
               >
                 <Icon className="size-[18px]" />
                 {l.label}
-                {l.count != null && l.count > 0 && (
+                {count != null && count > 0 && (
                   <span
                     className={cn(
                       "ml-auto grid h-5 min-w-[22px] place-items-center rounded-full px-1.5 text-xs font-bold",
                       l.active ? "bg-primary text-primary-foreground" : "bg-black/[0.06] text-muted-foreground"
                     )}
                   >
-                    {l.count}
+                    {count}
                   </span>
                 )}
               </a>
