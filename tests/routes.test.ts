@@ -2,15 +2,13 @@ import { describe, it, expect } from 'vitest';
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import Mission from '../src/pages/mission.astro';
 import Team from '../src/pages/team.astro';
-import Meetings from '../src/pages/meetings.astro';
 import CreateNextDigest from '../src/pages/create-next-digest.astro';
 import Contact from '../src/pages/contact.astro';
 
-// These fully-static pages carry the AC-1/2/3 title+meta guarantees that are testable here.
+// /meetings is now SSR, so it moved out of this fully-static set (docs/claude/0013-events-admin.md).
 const STATIC_PAGES = [
   { name: 'mission', Comp: Mission, title: 'Mission · Badger Journals', h1: 'Mission' },
   { name: 'team', Comp: Team, title: 'Our Team · Badger Journals', h1: 'Our Team' },
-  { name: 'meetings', Comp: Meetings, title: 'Meetings · Badger Journals', h1: 'Meetings' },
   { name: 'create-next-digest', Comp: CreateNextDigest, title: 'Create the Next Digest · Badger Journals', h1: 'Create the Next Digest' },
   { name: 'contact', Comp: Contact, title: 'Contact Us · Badger Journals', h1: 'Contact Us' },
 ];

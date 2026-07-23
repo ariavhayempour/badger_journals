@@ -1,13 +1,14 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { SUBMISSION_TYPES, RATE_LIMIT_COLUMNS } from '../../src/db/schema';
+import { SUBMISSION_TYPES, RATE_LIMIT_COLUMNS, EVENT_COLUMNS } from '../../src/db/schema';
 
 const readMigration = (name: string): string =>
   readFileSync(fileURLToPath(new URL(`../../migrations/${name}`, import.meta.url)), 'utf8');
 
 const migration = readMigration('0001_init.sql');
 const rateLimitMigration = readMigration('0002_rate_limit.sql');
+const eventsMigration = readMigration('0003_events.sql');
 
 describe('schema ↔ DDL sync', () => {
   it('SUBMISSION_TYPES equals the submission_type CHECK values in the migration', () => {
@@ -24,5 +25,13 @@ describe('schema ↔ DDL sync', () => {
 
     const ddlColumns = [...block![1].matchAll(/^\s*([a-z_]+)\s+(?:TEXT|TIMESTAMPTZ|INTEGER)\b/gim)].map((m) => m[1]);
     expect(ddlColumns.sort()).toEqual([...Object.values(RATE_LIMIT_COLUMNS)].sort());
+  });
+
+  it('EVENT_COLUMNS mirror the events columns in the migration', () => {
+    const block = eventsMigration.match(/CREATE TABLE events\s*\(([\s\S]*?)\);/i);
+    expect(block, 'events table not found in migration').not.toBeNull();
+
+    const ddlColumns = [...block![1].matchAll(/^\s*([a-z_]+)\s+(?:BIGINT|TEXT|TIMESTAMPTZ)\b/gim)].map((m) => m[1]);
+    expect(ddlColumns.sort()).toEqual([...Object.values(EVENT_COLUMNS)].sort());
   });
 });
