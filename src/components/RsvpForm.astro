@@ -1,4 +1,6 @@
 ---
+import { MAX_NAME, MAX_EMAIL } from '../lib/limits';
+
 interface Props {
   meeting: string; // slug identity; also namespaces element ids so many forms coexist on one page
 }
@@ -15,17 +17,22 @@ const dialogId = `rsvp-dialog-${meeting}`;
 
   <div class="rsvp__field">
     <label for={nameId}>Name</label>
-    <input id={nameId} name="name" type="text" autocomplete="name" required aria-describedby={nameErrId} />
+    <input id={nameId} name="name" type="text" autocomplete="name" required maxlength={MAX_NAME} aria-describedby={nameErrId} />
     <p class="rsvp__error" id={nameErrId} data-error-for="name" hidden></p>
   </div>
 
   <div class="rsvp__field">
     <label for={emailId}>Email (@wisc.edu)</label>
-    <input id={emailId} name="email" type="email" autocomplete="email" required aria-describedby={emailErrId} />
+    <input id={emailId} name="email" type="email" autocomplete="email" required maxlength={MAX_EMAIL} aria-describedby={emailErrId} />
     <p class="rsvp__error" id={emailErrId} data-error-for="email" hidden></p>
   </div>
 
   <input type="hidden" name="meeting" value={meeting} />
+
+  <div class="rsvp__hp" aria-hidden="true">
+    <input type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true" />
+  </div>
+
   <button type="submit">RSVP</button>
 
   <p class="rsvp__status" id={statusId} role="status" aria-live="polite" data-status hidden></p>
@@ -119,6 +126,7 @@ const dialogId = `rsvp-dialog-${meeting}`;
         email: String(data.get('email') ?? ''),
         meeting: String(data.get('meeting') ?? ''),
       };
+      const company = String(data.get('company') ?? '');
 
       const clientErrors = validateRsvp(input);
       if (clientErrors.length > 0) {
@@ -133,7 +141,7 @@ const dialogId = `rsvp-dialog-${meeting}`;
         const res = await fetch('/api/rsvp', {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
-          body: JSON.stringify(input),
+          body: JSON.stringify({ ...input, company }),
         });
         if (res.status === 201) {
           form.reset();
@@ -145,6 +153,9 @@ const dialogId = `rsvp-dialog-${meeting}`;
           const errors = body.errors ?? [];
           errors.forEach((err) => setError(form, err.field, err.message));
           firstInvalid(form, errors);
+        } else if (res.status === 429) {
+          // Values are preserved (no reset) so the user can retry after the window.
+          showStatus(form, "You're doing that too often. Please wait a minute and try again.", 'error');
         } else {
           // Values are preserved (no reset) so the user can retry.
           showStatus(form, 'Something went wrong. Please try again.', 'error');
@@ -178,6 +189,13 @@ const dialogId = `rsvp-dialog-${meeting}`;
   .rsvp__field {
     display: grid;
     gap: var(--space-3);
+  }
+  .rsvp__hp {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
   }
   .rsvp__field label {
     font-weight: 500;
