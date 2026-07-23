@@ -1,0 +1,112 @@
+---
+// Per-request SSR; the /admin gate (middleware) covers GET and POST — no in-page auth check.
+export const prerender = false;
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import EventForm from '../../../components/EventForm.astro';
+import { listEvents, insertEvent, deleteEvent } from '../../../db/event';
+import { validateEvent, type EventFieldError, type EventInput } from '../../../lib/event-validation';
+
+let errors: EventFieldError[] = [];
+let values: Partial<EventInput> = {};
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const action = form.get('_action');
+  if (action === 'create') {
+    const input: EventInput = {
+      date: String(form.get('date') ?? ''),
+      title: String(form.get('title') ?? ''),
+      time: String(form.get('time') ?? ''),
+      location: String(form.get('location') ?? ''),
+    };
+    errors = validateEvent(input);
+    if (errors.length === 0) {
+      await insertEvent(input);
+      return Astro.redirect('/admin/events', 303);
+    }
+    values = input;
+    Astro.response.status = 400;
+  } else if (action === 'delete') {
+    const id = Number(form.get('id'));
+    if (Number.isInteger(id) && id > 0) {
+      await deleteEvent(id);
+    }
+    return Astro.redirect('/admin/events', 303);
+  }
+}
+
+const events = await listEvents();
+---
+<AdminLayout title="Events">
+  <h1>Events</h1>
+
+  <section aria-labelledby="add-event-heading">
+    <h2 id="add-event-heading">Add an event</h2>
+    <EventForm action="/admin/events" actionValue="create" submitLabel="Create event" values={values} errors={errors} />
+  </section>
+
+  <section aria-labelledby="all-events-heading">
+    <h2 id="all-events-heading">All events</h2>
+    {events.length === 0 ? (
+      <p class="empty">No events yet. Add one above.</p>
+    ) : (
+      <ul class="event-list">
+        {events.map((e) => (
+          <li>
+            <time datetime={e.date}>{e.date}</time>
+            {e.title && <span class="event-list__title">{e.title}</span>}
+            <a href={`/admin/events/${e.id}`}>Edit</a>
+            <form method="post" action="/admin/events" class="event-list__delete" onsubmit="return confirm('Delete this event? This also removes its RSVPs.')">
+              <input type="hidden" name="_action" value="delete" />
+              <input type="hidden" name="id" value={e.id} />
+              <button type="submit">Delete</button>
+            </form>
+          </li>
+        ))}
+      </ul>
+    )}
+  </section>
+</AdminLayout>
+
+<style>
+  section {
+    margin-bottom: 2.5rem;
+  }
+  .event-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 0.5rem;
+  }
+  .event-list li {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--color-rule, #e5e5e5);
+    border-radius: var(--radius, 4px);
+  }
+  .event-list time {
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+  }
+  .event-list__title {
+    flex: 1;
+  }
+  .event-list li:not(:has(.event-list__title)) a {
+    margin-left: auto;
+  }
+  .event-list__delete {
+    margin: 0;
+  }
+  .event-list__delete button {
+    padding: 0.35rem 0.75rem;
+    font: inherit;
+    color: var(--color-cardinal-dark, #9b0000);
+    background: transparent;
+    border: 1px solid currentColor;
+    border-radius: var(--radius, 4px);
+    cursor: pointer;
+  }
+</style>

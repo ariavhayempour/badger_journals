@@ -1,5 +1,4 @@
-// Hand-written mirror of migrations/0001_init.sql (the schema source of truth).
-// Keep in sync with the DDL; tests/db/schema.test.ts guards the CHECK values.
+// Hand-mirrors migrations/*.sql; tests/db/schema.test.ts guards the sync (docs/claude/0006-database.md).
 
 export const SUBMISSION_TYPES = ['inquiry', 'join', 'digest'] as const;
 export type SubmissionType = (typeof SUBMISSION_TYPES)[number];
@@ -28,10 +27,21 @@ export interface RateLimitHitRow {
   expires_at: string;
 }
 
+export interface EventRow {
+  id: number;
+  slug: string;
+  date: string;
+  title: string | null;
+  time: string | null;
+  location: string | null;
+  created_at: string;
+}
+
 export const TABLES = {
   rsvps: 'rsvps',
   submissions: 'submissions',
   rateLimitHits: 'rate_limit_hits',
+  events: 'events',
 } as const;
 
 export const RSVP_COLUMNS = {
@@ -56,4 +66,14 @@ export const RATE_LIMIT_COLUMNS = {
   windowStart: 'window_start',
   count: 'count',
   expiresAt: 'expires_at',
+} as const;
+
+export const EVENT_COLUMNS = {
+  id: 'id',
+  slug: 'slug',
+  date: 'date',
+  title: 'title',
+  time: 'time',
+  location: 'location',
+  createdAt: 'created_at',
 } as const;

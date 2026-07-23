@@ -1,0 +1,118 @@
+---
+import { MAX_TITLE, MAX_TIME, MAX_LOCATION } from '../lib/limits';
+import type { EventField, EventFieldError, EventInput } from '../lib/event-validation';
+
+interface Props {
+  action: string; // POST target
+  actionValue: string; // hidden _action discriminator (create | update)
+  submitLabel: string;
+  values?: Partial<EventInput>;
+  errors?: EventFieldError[];
+}
+const { action, actionValue, submitLabel, values = {}, errors = [] } = Astro.props;
+const errorFor = (field: EventField): string | undefined => errors.find((e) => e.field === field)?.message;
+const errId = (field: EventField): string => `event-${field}-err`;
+---
+<form class="event-form" method="post" action={action}>
+  <input type="hidden" name="_action" value={actionValue} />
+
+  <div class="event-form__field">
+    <label for="event-date">Date</label>
+    <input
+      id="event-date"
+      name="date"
+      type="date"
+      required
+      value={values.date ?? ''}
+      aria-describedby={errorFor('date') ? errId('date') : undefined}
+      aria-invalid={errorFor('date') ? 'true' : undefined}
+    />
+    {errorFor('date') && <p class="event-form__error" id={errId('date')}>{errorFor('date')}</p>}
+  </div>
+
+  <div class="event-form__field">
+    <label for="event-title">Title <span class="event-form__optional">(optional)</span></label>
+    <input
+      id="event-title"
+      name="title"
+      type="text"
+      maxlength={MAX_TITLE}
+      value={values.title ?? ''}
+      aria-describedby={errorFor('title') ? errId('title') : undefined}
+      aria-invalid={errorFor('title') ? 'true' : undefined}
+    />
+    {errorFor('title') && <p class="event-form__error" id={errId('title')}>{errorFor('title')}</p>}
+  </div>
+
+  <div class="event-form__field">
+    <label for="event-time">Time <span class="event-form__optional">(optional)</span></label>
+    <input
+      id="event-time"
+      name="time"
+      type="text"
+      maxlength={MAX_TIME}
+      value={values.time ?? ''}
+      aria-describedby={errorFor('time') ? errId('time') : undefined}
+      aria-invalid={errorFor('time') ? 'true' : undefined}
+    />
+    {errorFor('time') && <p class="event-form__error" id={errId('time')}>{errorFor('time')}</p>}
+  </div>
+
+  <div class="event-form__field">
+    <label for="event-location">Location <span class="event-form__optional">(optional)</span></label>
+    <input
+      id="event-location"
+      name="location"
+      type="text"
+      maxlength={MAX_LOCATION}
+      value={values.location ?? ''}
+      aria-describedby={errorFor('location') ? errId('location') : undefined}
+      aria-invalid={errorFor('location') ? 'true' : undefined}
+    />
+    {errorFor('location') && <p class="event-form__error" id={errId('location')}>{errorFor('location')}</p>}
+  </div>
+
+  <button type="submit">{submitLabel}</button>
+</form>
+
+<style>
+  .event-form {
+    display: grid;
+    gap: 1rem;
+    max-width: 32rem;
+  }
+  .event-form__field {
+    display: grid;
+    gap: 0.35rem;
+  }
+  .event-form__optional {
+    font-weight: 400;
+    color: var(--color-ink-muted, #666);
+  }
+  .event-form__field label {
+    font-weight: 500;
+  }
+  .event-form__field input {
+    padding: 0.5rem;
+    font: inherit;
+    border: 1px solid var(--color-rule, #ccc);
+    border-radius: var(--radius, 4px);
+  }
+  .event-form__field input[aria-invalid='true'] {
+    border-color: var(--color-cardinal, #c5050c);
+  }
+  .event-form__error {
+    margin: 0;
+    color: var(--color-cardinal-dark, #9b0000);
+    font-size: 0.9rem;
+  }
+  .event-form button[type='submit'] {
+    justify-self: start;
+    padding: 0.5rem 1.25rem;
+    color: var(--color-paper, #fff);
+    background: var(--color-cardinal, #c5050c);
+    border: 1px solid transparent;
+    border-radius: var(--radius, 4px);
+    cursor: pointer;
+  }
+</style>

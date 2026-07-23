@@ -1,16 +1,26 @@
 ---
-export const prerender = true;
+// Per-request SSR read of the events table, so admin create/edit/delete shows on the next visit with no redeploy.
+export const prerender = false;
 import BaseLayout from '../layouts/BaseLayout.astro';
 import RsvpForm from '../components/RsvpForm.astro';
-import { meetings, splitMeetings, type Meeting } from '../data/meetings';
+import { listEvents } from '../db/event';
+import { splitMeetings, type MeetingView } from '../lib/split-meetings';
 
-const buildDate = new Date().toISOString().slice(0, 10); // 'now' is build time — correct for a prerendered page
-const { upcoming, past } = splitMeetings(meetings, buildDate);
+const rows = await listEvents();
+const view: MeetingView[] = rows.map((r) => ({
+  id: r.slug,
+  date: r.date,
+  title: r.title ?? undefined,
+  time: r.time ?? undefined,
+  location: r.location ?? undefined,
+}));
+const today = new Date().toISOString().slice(0, 10); // request time — advances without a redeploy
+const { upcoming, past } = splitMeetings(view, today);
 
 // UTC formatter matches the UTC-midnight parse of an ISO date, avoiding an off-by-one day shift.
 const dateFmt = new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' });
 const formatDate = (iso: string): string => dateFmt.format(new Date(iso));
-const detail = (m: Meeting): string => [m.time, m.location].filter(Boolean).join(' · ');
+const detail = (m: MeetingView): string => [m.time, m.location].filter(Boolean).join(' · ');
 ---
 <BaseLayout
   title="Meetings"
