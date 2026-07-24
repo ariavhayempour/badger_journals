@@ -7,7 +7,7 @@ import campus from '../assets/images/campus.jpg';
 import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { team } from '../data/team';
-import { researchAreas } from '../data/research-areas';
+import { digests } from '../data/digests';
 import { listEvents } from '../db/event';
 import { splitMeetings, type MeetingView } from '../lib/split-meetings';
 
@@ -71,7 +71,7 @@ const marquee = [...members, ...members]; // duplicated for a seamless loop
         Research made <em class="font-semibold italic">Readable</em>.
       </p>
       <p class="mt-4 max-w-[46ch] text-base sm:text-lg leading-relaxed text-white/80">
-        We read, discuss, and write about the latest scientific papers, turning complicated literature into digests any undergraduate can follow.
+        We read, discuss, and write about the latest scientific papers to turn complicated literature into digests any undergraduate can follow.
       </p>
       <div class="mt-8 flex flex-wrap items-center gap-4">
         <a href="/meetings" class={cn(buttonVariants({ variant: 'default' }), 'h-12 px-6 text-base')}>
@@ -91,7 +91,7 @@ const marquee = [...members, ...members]; // duplicated for a seamless loop
   <div class="relative z-10 mx-auto mt-12 sm:mt-16 max-w-6xl px-6">
     <dl class="grid grid-cols-2 overflow-hidden rounded-2xl border border-border bg-card shadow-[0_10px_30px_rgb(28_25_23/0.10)] lg:grid-cols-4">
       {[
-        { n: '6', l: 'Research areas covered' },
+        { n: '3', l: 'Research areas covered' },
         { n: '3+', l: 'Student contributors' },
         { n: 'Weekly', l: 'Journal club meetings' },
         { n: 'All', l: 'Majors welcome' },
@@ -174,7 +174,7 @@ const marquee = [...members, ...members]; // duplicated for a seamless loop
         Student-written reviews in the fields our members care about.
       </p>
       <ul class="grid gap-5 [grid-template-columns:repeat(auto-fit,minmax(250px,1fr))]">
-        {researchAreas.slice(0, 3).map((a) => (
+        {digests.map((a) => (
           <li class="rounded-2xl border border-border bg-card p-7 shadow-[0_10px_30px_rgb(28_25_23/0.06)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_36px_rgb(28_25_23/0.1)]">
             <p class="mb-3 text-3xl" aria-hidden="true">{a.icon}</p>
             <h3 class="font-serif text-xl font-bold">{a.title}</h3>
