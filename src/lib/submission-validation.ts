@@ -1,7 +1,7 @@
 // Pure, browser-safe rules (no node:*/DB imports) shared by the client script and the API route.
 
 import { SUBMISSION_TYPES, type SubmissionType } from '../db/schema';
-import { MAX_NAME, MAX_EMAIL, MAX_MESSAGE } from './limits';
+import { MAX_NAME, MAX_EMAIL, MAX_MESSAGE, MAX_MESSAGE_WORDS } from './limits';
 
 export interface SubmissionInput {
   name: string;
@@ -20,6 +20,11 @@ export interface SubmissionFieldError {
 // Local part, then optional subdomains, then wisc.edu as the final domain.
 const WISC_EMAIL = /^[^\s@]+@([a-z0-9-]+\.)*wisc\.edu$/i;
 
+export function countWords(text: string): number {
+  const trimmed = text.trim();
+  return trimmed === '' ? 0 : trimmed.split(/\s+/).length;
+}
+
 export function validateSubmission(input: SubmissionInput): SubmissionFieldError[] {
   const errors: SubmissionFieldError[] = [];
 
@@ -37,6 +42,8 @@ export function validateSubmission(input: SubmissionInput): SubmissionFieldError
 
   if (input.message.trim() === '') {
     errors.push({ field: 'message', message: 'Please enter a message.' });
+  } else if (countWords(input.message) > MAX_MESSAGE_WORDS) {
+    errors.push({ field: 'message', message: `Please keep your message to ${MAX_MESSAGE_WORDS} words or fewer.` });
   } else if (input.message.trim().length > MAX_MESSAGE) {
     errors.push({ field: 'message', message: `Please keep your message under ${MAX_MESSAGE} characters.` });
   }

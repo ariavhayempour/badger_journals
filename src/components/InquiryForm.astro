@@ -1,5 +1,5 @@
 ---
-import { MAX_NAME, MAX_EMAIL, MAX_MESSAGE } from '../lib/limits';
+import { MAX_NAME, MAX_EMAIL, MAX_MESSAGE, MAX_MESSAGE_WORDS } from '../lib/limits';
 import type { SubmissionType } from '../db/schema';
 
 const nameId = `inq-name`;
@@ -18,19 +18,21 @@ const { type } = Astro.props;
 
 const field = 'w-full rounded-lg border border-input bg-background px-3 py-2 text-base md:text-sm shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-[invalid=true]:border-destructive aria-[invalid=true]:ring-destructive/20';
 ---
-<form class="inquiry mt-4 grid gap-4 rounded-2xl border border-border bg-card p-6" method="post" action="/api/inquiry" novalidate data-inquiry>
+<form class="inquiry mt-6 grid gap-4 rounded-2xl border border-border bg-card p-6 shadow-[0_10px_30px_rgb(28_25_23/0.06)] sm:p-8" method="post" action="/api/inquiry" novalidate data-inquiry>
   {type && <input type="hidden" name="type" value={type} />}
 
-  <div class="grid gap-1.5">
-    <label for={nameId} class="text-sm font-medium">Name</label>
-    <input id={nameId} name="name" type="text" autocomplete="name" required maxlength={MAX_NAME} aria-describedby={nameErrId} class={`h-10 ${field}`} />
-    <p class="text-sm text-destructive" id={nameErrId} data-error-for="name" hidden></p>
-  </div>
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div class="grid gap-1.5">
+      <label for={nameId} class="text-sm font-medium">Name</label>
+      <input id={nameId} name="name" type="text" autocomplete="name" required maxlength={MAX_NAME} aria-describedby={nameErrId} class={`h-10 ${field}`} />
+      <p class="text-sm text-destructive" id={nameErrId} data-error-for="name" hidden></p>
+    </div>
 
-  <div class="grid gap-1.5">
-    <label for={emailId} class="text-sm font-medium">Email (@wisc.edu)</label>
-    <input id={emailId} name="email" type="email" autocomplete="email" required maxlength={MAX_EMAIL} aria-describedby={emailErrId} class={`h-10 ${field}`} />
-    <p class="text-sm text-destructive" id={emailErrId} data-error-for="email" hidden></p>
+    <div class="grid gap-1.5">
+      <label for={emailId} class="text-sm font-medium">Email (@wisc.edu)</label>
+      <input id={emailId} name="email" type="email" autocomplete="email" required maxlength={MAX_EMAIL} aria-describedby={emailErrId} class={`h-10 ${field}`} />
+      <p class="text-sm text-destructive" id={emailErrId} data-error-for="email" hidden></p>
+    </div>
   </div>
 
   {!type && (
@@ -38,15 +40,18 @@ const field = 'w-full rounded-lg border border-input bg-background px-3 py-2 tex
       <label for={typeId} class="text-sm font-medium">What are you reaching out about?</label>
       <select id={typeId} name="type" required class={`h-10 ${field}`}>
         <option value="inquiry">General Inquiry</option>
-        <option value="join">Join the Team</option>
         <option value="digest">Start a Digest</option>
+        <option value="join">Join the Team</option>
       </select>
     </div>
   )}
 
   <div class="grid gap-1.5">
-    <label for={messageId} class="text-sm font-medium" id="inq-message-label">Message</label>
-    <textarea id={messageId} name="message" rows="5" required maxlength={MAX_MESSAGE} aria-describedby={messageErrId} class={`resize-y ${field}`} placeholder="How can we help?"></textarea>
+    <div class="flex items-baseline justify-between gap-2">
+      <label for={messageId} class="text-sm font-medium" id="inq-message-label">Message</label>
+      <span class="text-xs tabular-nums text-muted-foreground" id="inq-message-count" data-message-count>0 / {MAX_MESSAGE_WORDS} words</span>
+    </div>
+    <textarea id={messageId} name="message" required maxlength={MAX_MESSAGE} aria-describedby={`inq-message-count ${messageErrId}`} class={`resize-none overflow-hidden ${field}`} style="width:530px;max-width:100%;height:120px" placeholder="How can we help?"></textarea>
     <p class="text-sm text-destructive" id={messageErrId} data-error-for="message" hidden></p>
   </div>
 
@@ -60,7 +65,8 @@ const field = 'w-full rounded-lg border border-input bg-background px-3 py-2 tex
 </form>
 
 <script>
-  import { validateSubmission, type SubmissionField } from '../lib/submission-validation';
+  import { validateSubmission, countWords, type SubmissionField } from '../lib/submission-validation';
+  import { MAX_MESSAGE_WORDS } from '../lib/limits';
   import type { SubmissionType } from '../db/schema';
 
   type ApiError = { field: SubmissionField; message: string };
@@ -101,6 +107,32 @@ const field = 'w-full rounded-lg border border-input bg-background px-3 py-2 tex
     const typeSelect = form.querySelector<HTMLSelectElement>('[name="type"]');
     const messageLabel = form.querySelector<HTMLLabelElement>('#inq-message-label');
     const messageInput = form.querySelector<HTMLTextAreaElement>('[name="message"]');
+    const messageCount = form.querySelector<HTMLElement>('[data-message-count]');
+
+    if (messageInput) {
+      const enforceWordLimit = () => {
+        const parts = messageInput.value.trim().split(/\s+/);
+        if (parts.length > MAX_MESSAGE_WORDS) {
+          messageInput.value = parts.slice(0, MAX_MESSAGE_WORDS).join(' ');
+        }
+      };
+      const updateMessage = () => {
+        if (messageCount) {
+          const words = countWords(messageInput.value);
+          messageCount.textContent = `${words} / ${MAX_MESSAGE_WORDS} words`;
+          messageCount.classList.toggle('text-destructive', words >= MAX_MESSAGE_WORDS);
+        }
+        // Grow to fit content, never below the 120px resting height.
+        messageInput.style.height = 'auto';
+        messageInput.style.height = `${Math.max(120, messageInput.scrollHeight)}px`;
+      };
+      messageInput.addEventListener('input', (e) => {
+        // Skip mid-composition (IME) so partial input isn't truncated.
+        if (!(e instanceof InputEvent && e.isComposing)) enforceWordLimit();
+        updateMessage();
+      });
+      updateMessage();
+    }
 
     if (typeSelect && messageLabel && messageInput) {
       const updateFields = () => {
@@ -158,6 +190,7 @@ const field = 'w-full rounded-lg border border-input bg-background px-3 py-2 tex
         if (res.status === 201) {
           form.reset();
           if (typeSelect) typeSelect.dispatchEvent(new Event('change'));
+          messageInput?.dispatchEvent(new Event('input'));
           showStatus(form, "Thanks — we've got your message and will be in touch.", 'ok');
         } else if (res.status === 400) {
           const body = (await res.json().catch(() => ({}))) as { errors?: ApiError[] };
