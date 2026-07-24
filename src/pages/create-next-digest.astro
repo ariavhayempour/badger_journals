@@ -1,7 +1,7 @@
 ---
 export const prerender = true;
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { researchAreas } from '../data/research-areas';
+import { digests } from '../data/digests';
 ---
 <BaseLayout
   title="Create the Next Digest"
@@ -23,17 +23,15 @@ import { researchAreas } from '../data/research-areas';
   </section>
 
   <section class="mx-auto max-w-6xl px-6 py-16">
-    <h2 class="font-serif text-2xl font-bold tracking-tight sm:text-3xl">Research areas we're expanding into</h2>
+    <h2 class="font-serif text-2xl font-bold tracking-tight sm:text-3xl">Digests we publish today</h2>
     <p class="mt-2 mb-9 max-w-[62ch] text-lg text-muted-foreground">
-      Our model of student-driven science communication is proven. Now we're looking for
-      passionate students to launch new digests in other cutting-edge fields.
     </p>
     <ul class="grid list-none gap-5 p-0 [grid-template-columns:repeat(auto-fill,minmax(16rem,1fr))]">
-      {researchAreas.map((a) => (
+      {digests.map((d) => (
         <li class="rounded-2xl border border-border bg-card p-6 transition-all hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgb(28_25_23/0.08)]">
-          <p class="mb-3 text-3xl" aria-hidden="true">{a.icon}</p>
-          <h3 class="font-serif text-xl font-bold">{a.title}</h3>
-          <p class="mt-2 text-muted-foreground">{a.description}</p>
+          <p class="mb-3 text-3xl" aria-hidden="true">{d.icon}</p>
+          <h3 class="font-serif text-xl font-bold">{d.title}</h3>
+          <p class="mt-2 text-muted-foreground">{d.description}</p>
         </li>
       ))}
       <li class="rounded-2xl border border-primary/20 bg-cardinal-tint p-6">
