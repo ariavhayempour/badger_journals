@@ -2,8 +2,8 @@
 
 Implements story `docs/user-stories/0013.md`: a signed-in admin creates, edits, and deletes club
 meetings from `/admin/events`, persisted in Postgres. The public `/meetings` page reads those same
-rows per request, so any create/edit/delete shows on the next visit with no redeploy. Spec:
-`SPEC.md` (root, untracked). Builds on 0006 (Postgres + migrations), 0007 (`/meetings` +
+rows per request, so any create/edit/delete shows on the next visit with no redeploy. Builds
+on 0006 (Postgres + migrations), 0007 (`/meetings` +
 `splitMeetings`), and 0011 (`/admin/*` auth gate) — adds no auth logic and no new dependency.
 
 ## Data model

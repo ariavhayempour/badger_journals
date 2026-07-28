@@ -3,8 +3,8 @@
 Implements story `docs/user-stories/0009.md`: three placements — `/contact` (inquiry),
 `/team` (join), and `/create-next-digest` (digest) — each render a name + `wisc.edu`-email +
 message form that POSTs to one SSR route, validates server-side, and inserts into the
-`submissions` table from 0006. Spec: `SPEC.md` (root, untracked). Built as pure Astro + one
-scoped `<script>` — no React, no new dependency, no new migration. Directly reuses the 0008
+`submissions` table from 0006. Built as pure Astro + one scoped `<script>` — no React, no new
+dependency, no new migration. Directly reuses the 0008
 RSVP pattern, adapted for submission-type discrimination and a `message` field, and **without**
 the 409/duplicate machinery.
 

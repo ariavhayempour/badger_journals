@@ -2,8 +2,8 @@
 
 Implements story `docs/user-stories/0010.md`: a defense-in-depth pass over the two public write
 routes (`/api/rsvp`, `/api/inquiry`) adding three independent layers — a honeypot field,
-server-side length caps, and a Neon-backed fixed-window rate limiter. Spec: `SPEC.md` (root,
-untracked). No new dependency, no new secret, no `vercel.json`. Layers are independent so any
+server-side length caps, and a Neon-backed fixed-window rate limiter. No new dependency, no
+new secret, no `vercel.json`. Layers are independent so any
 one can fail without disabling the others.
 
 ## Guard order (per request)

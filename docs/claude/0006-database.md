@@ -2,7 +2,7 @@
 
 Implements story `docs/user-stories/0006.md`: the durable data layer for RSVPs and
 submissions. This story provisions Postgres and the tooling; it ships **no** forms, API
-routes, or pages — those arrive in 0008/0009/0010/0012. Spec: `SPEC.md` (root, untracked).
+routes, or pages — those arrive in 0008/0009/0010/0012.
 
 ## Provider & driver
 
