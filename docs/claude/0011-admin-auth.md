@@ -1,7 +1,7 @@
 # 0011 — Admin authentication (Clerk-hosted)
 
 Implements story `docs/user-stories/0011.md`: a private `/admin/*` area only authorized club
-staff can reach. Spec: `SPEC.md` (root, untracked). Gates story `0012` (admin dashboard).
+staff can reach. Gates story `0012` (admin dashboard).
 
 Authentication is delegated to **Clerk** (hosted). Clerk owns login, logout, session issuance,
 password hashing, and the admin user store — this codebase adds only the route gate and the

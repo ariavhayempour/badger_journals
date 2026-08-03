@@ -1,8 +1,8 @@
 # 0007 — Meetings calendar from repo data
 
-Implements story `docs/user-stories/0007.md`. Spec: `SPEC.md` (root, untracked). Replaces
-the placeholder `/meetings` body with a data-driven, prerendered list of club meetings that
-maintainers edit in one typed file and redeploy.
+Implements story `docs/user-stories/0007.md`. Replaces the placeholder `/meetings` body with
+a data-driven, prerendered list of club meetings that maintainers edit in one typed file and
+redeploy.
 
 ## Data model
 

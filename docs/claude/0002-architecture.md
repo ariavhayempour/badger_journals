@@ -2,7 +2,7 @@
 
 Implements story `docs/user-stories/0002.md`: the legacy single-file `index.html` SPA
 (client-side `showPage()` toggle) rebuilt as componentized Astro pages, each with a real,
-directly-loadable URL. Spec: `SPEC.md` (root, untracked).
+directly-loadable URL.
 
 ## Layout & SEO
 

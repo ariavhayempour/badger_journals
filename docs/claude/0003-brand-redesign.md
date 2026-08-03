@@ -1,6 +1,6 @@
 # 0003 — UW-Madison brand redesign
 
-Implements story `docs/user-stories/0003.md` (spec: `SPEC.md`, root, untracked). A
+Implements story `docs/user-stories/0003.md`. A
 cross-cutting **visual system** layered on the 0002 componentized pages, which shipped
 semantic HTML with class hooks but zero CSS. 0003 builds the whole visual layer from
 scratch on Cardinal Red (`#C5050C`) + white, with the legacy crimson (`#8B1A1A`) gone.

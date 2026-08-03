@@ -37,8 +37,7 @@ export const team: TeamGroup[] = [
     title: 'Outreach & Media',
     members: [
       { name: 'Kevin Tran', role: 'Outreach Chair', major: 'Neuroscience', classOf: 'Class of 2028' },
-      { name: 'Emily Au', role: 'Media Chair', major: 'Neurobiology', classOf: 'Class of 2028' },
-      { name: 'TODO', role: 'Media Chair', major: 'TODO', classOf: 'TODO' },
+      { name: 'TBD', role: 'Media Chair needed!', major: 'TBD', classOf: 'TBD' },
     ],
   },
   {

@@ -2,7 +2,7 @@
 
 Implements story `docs/user-stories/0012.md`: one signed-in page, `/admin` (the admin index),
 that lists every RSVP (grouped by meeting) and every submission (inquiry / join / digest, newest
-first), each with a clear empty state. Spec: `SPEC.md` (root, untracked). Read-only SSR; no
+first), each with a clear empty state. Read-only SSR; no
 mutation, export, or reply flow. Builds on the 0011 auth gate — this story adds no auth logic
 and no new dependency.
 
