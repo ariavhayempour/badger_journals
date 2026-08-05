@@ -43,3 +43,34 @@ describe('InquiryTable', () => {
     expect(html).toContain('Ada Lovelace');
   });
 });
+
+describe('InquiryTable — bulk selection', () => {
+  it('renders a select checkbox in every row, hidden until edit mode', async () => {
+    const html = await render([sample, { ...sample, id: 8 }]);
+    const cells = html.match(/<td[^>]*data-action="select"[^>]*>/g) ?? [];
+    expect(cells).toHaveLength(2);
+    for (const cell of cells) expect(cell).toMatch(/style="display:\s*none;?"/);
+  });
+
+  it('renders a select-all checkbox in the header, hidden until edit mode', async () => {
+    const html = await render([sample]);
+    const header = /<th[^>]*data-select-all-cell[^>]*>/.exec(html);
+    expect(header, 'select-all header cell').not.toBeNull();
+    expect(header![0]).toMatch(/style="display:\s*none;?"/);
+    expect(html).toMatch(/<input[^>]*id="select-all-submissions"[^>]*type="checkbox"|<input[^>]*type="checkbox"[^>]*id="select-all-submissions"/);
+  });
+
+  it('gives each row checkbox an accessible label', async () => {
+    const html = await render([sample]);
+    const box = /<input[^>]*data-select-row[^>]*>/.exec(html);
+    expect(box, 'row checkbox').not.toBeNull();
+    expect(box![0]).toMatch(/type="checkbox"/);
+    expect(box![0]).toMatch(/aria-label="[^"]+"/);
+  });
+
+  it('no longer renders the per-row delete button', async () => {
+    const html = await render([sample]);
+    expect(html).not.toContain('data-action="delete"');
+    expect(html).not.toContain('Delete submission');
+  });
+});

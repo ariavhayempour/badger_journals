@@ -26,12 +26,19 @@ const td = 'border-b border-border/50 px-5 py-3.5 align-top';
       <table class="w-full border-collapse text-sm">
         <thead>
           <tr>
+            <th scope="col" class={`${th} w-12 text-center`} style="display: none;" data-select-all-cell>
+              <input
+                type="checkbox"
+                id="select-all-submissions"
+                class="size-4 cursor-pointer align-middle accent-primary"
+                aria-label="Select all submissions"
+              />
+            </th>
             <th scope="col" class={th}>Name</th>
             <th scope="col" class={th}>Email</th>
             <th scope="col" class={th}>Type</th>
             <th scope="col" class={th}>Message</th>
             <th scope="col" class={th}>Received</th>
-            <th scope="col" class={`${th} w-14`} aria-label="Actions"></th>
           </tr>
         </thead>
         <tbody>
@@ -44,6 +51,14 @@ const td = 'border-b border-border/50 px-5 py-3.5 align-top';
               data-search={`${s.name} ${s.email} ${s.message}`.toLowerCase()}
               title={s.is_read ? 'Mark as unread' : 'Mark as read'}
             >
+              <td class={`${td} w-12 text-center`} style="display: none;" data-action="select">
+                <input
+                  type="checkbox"
+                  class="size-4 cursor-pointer align-middle accent-primary"
+                  data-select-row
+                  aria-label={`Select submission from ${s.name}`}
+                />
+              </td>
               <td class={`${td} ${s.is_read ? 'font-medium text-muted-foreground' : 'font-bold'}`}>
                 {!s.is_read && <span class="mr-1.5 inline-block size-2 rounded-full bg-primary" aria-label="Unread"></span>}
                 {s.name}
@@ -52,24 +67,6 @@ const td = 'border-b border-border/50 px-5 py-3.5 align-top';
               <td class={td}><Badge variant={s.submission_type}>{label[s.submission_type]}</Badge></td>
               <td class={`${td} max-w-[40ch] whitespace-pre-wrap ${s.is_read ? 'text-muted-foreground' : 'font-medium'}`}>{s.message}</td>
               <td class={`${td} whitespace-nowrap text-muted-foreground`}>{formatTimestamp(s.created_at)}</td>
-              <td class={`${td} w-14 text-center`}>
-                <button
-                  type="button"
-                  style="display: none;"
-                  class="text-destructive hover:bg-destructive/10 p-1.5 rounded-lg transition-colors items-center justify-center"
-                  data-action="delete"
-                  aria-label="Delete submission"
-                  title="Delete submission"
-                >
-                  <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M3 6h18"></path>
-                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-                    <line x1="10" x2="10" y1="11" y2="17"></line>
-                    <line x1="14" x2="14" y1="11" y2="17"></line>
-                  </svg>
-                </button>
-              </td>
             </tr>
           ))}
         </tbody>
@@ -92,30 +89,91 @@ const td = 'border-b border-border/50 px-5 py-3.5 align-top';
       editBtn.setAttribute('data-editing', String(nextEditing));
       editBtn.textContent = nextEditing ? 'Done' : 'Edit';
 
-      document.querySelectorAll<HTMLButtonElement>('[data-action="delete"]').forEach((btn) => {
-        btn.style.display = nextEditing ? 'inline-flex' : 'none';
-      });
+      setEditing(nextEditing);
     });
   }
 
+  const rowBox = (row: HTMLTableRowElement) =>
+    row.querySelector<HTMLInputElement>('input[data-select-row]');
+
+  // Select-all acts only on rows InquiryFilters currently shows.
+  const visibleRows = () =>
+    Array.from(document.querySelectorAll<HTMLTableRowElement>('tr[data-id]')).filter(
+      (row) => !row.classList.contains('hidden'),
+    );
+
+  const selectedIds = (): number[] =>
+    Array.from(document.querySelectorAll<HTMLTableRowElement>('tr[data-id]'))
+      .filter((row) => rowBox(row)?.checked)
+      .map((row) => Number(row.getAttribute('data-id')));
+
+  const selectAll = document.getElementById('select-all-submissions') as HTMLInputElement | null;
+
+  // Header box reflects the visible rows: all, none, or indeterminate.
+  function syncSelectAll() {
+    if (!selectAll) return;
+    const rows = visibleRows();
+    const checked = rows.filter((row) => rowBox(row)?.checked).length;
+    selectAll.checked = rows.length > 0 && checked === rows.length;
+    selectAll.indeterminate = checked > 0 && checked < rows.length;
+  }
+
+  function setRowSelected(row: HTMLTableRowElement, selected: boolean) {
+    const box = rowBox(row);
+    if (!box) return;
+    box.checked = selected;
+    row.classList.toggle('bg-primary/5', selected);
+    syncSelectAll();
+    document.dispatchEvent(new CustomEvent('submissions:selection'));
+  }
+
+  function setEditing(editing: boolean) {
+    document.querySelectorAll<HTMLElement>('[data-action="select"], [data-select-all-cell]').forEach((cell) => {
+      cell.style.display = editing ? 'table-cell' : '';
+    });
+    if (!editing) {
+      document.querySelectorAll<HTMLTableRowElement>('tr[data-id]').forEach((row) => {
+        const box = rowBox(row);
+        if (box) box.checked = false;
+        row.classList.remove('bg-primary/5');
+      });
+      syncSelectAll();
+      document.dispatchEvent(new CustomEvent('submissions:selection'));
+    }
+    document.dispatchEvent(new CustomEvent('submissions:editing', { detail: { editing } }));
+  }
+
+  const isEditingNow = () =>
+    document.getElementById('edit-inbox-btn')?.getAttribute('data-editing') === 'true';
+
+  selectAll?.addEventListener('change', () => {
+    const target = selectAll.checked;
+    visibleRows().forEach((row) => {
+      const box = rowBox(row);
+      if (box) box.checked = target;
+      row.classList.toggle('bg-primary/5', target);
+    });
+    syncSelectAll();
+    document.dispatchEvent(new CustomEvent('submissions:selection'));
+  });
+
+  // Re-sync after a filter change, since the visible set defines the header state.
+  document.addEventListener('submissions:changed', syncSelectAll);
+
   document.querySelectorAll<HTMLTableRowElement>('tr[data-id]').forEach(row => {
+    rowBox(row)?.addEventListener('change', (e) => {
+      e.stopPropagation();
+      setRowSelected(row, rowBox(row)!.checked);
+    });
+
     row.addEventListener('click', async (e) => {
       const id = row.getAttribute('data-id');
       const target = e.target as HTMLElement;
-      
-      if (target.closest('[data-action="delete"]')) {
-        if (!confirm('Are you sure you want to delete this submission?')) return;
-        row.style.opacity = '0.5';
-        try {
-          const res = await fetch(`/admin/api/submissions/${id}`, { method: 'DELETE' });
-          if (res.ok) {
-            row.remove();
-            document.dispatchEvent(new CustomEvent('submissions:changed'));
-          } else throw new Error();
-        } catch {
-          alert('Failed to delete submission');
-          row.style.opacity = '1';
-        }
+
+      // While editing, a row click selects instead of toggling read state.
+      if (isEditingNow()) {
+        if (target.closest('input[data-select-row]')) return;
+        setRowSelected(row, !rowBox(row)?.checked);
         return;
       }
 
@@ -124,8 +182,9 @@ const td = 'border-b border-border/50 px-5 py-3.5 align-top';
       row.setAttribute('data-read', String(nextRead));
       row.title = nextRead ? 'Mark as unread' : 'Mark as read';
 
-      const nameTd = row.children[0] as HTMLElement;
-      const msgTd = row.children[3] as HTMLElement;
+      // Offset by the leading select cell, which is always present in the DOM.
+      const nameTd = row.children[1] as HTMLElement;
+      const msgTd = row.children[4] as HTMLElement;
       if (nextRead) {
         nameTd.className = nameTd.className.replace('font-bold', 'font-medium text-muted-foreground');
         nameTd.querySelector('span[aria-label="Unread"]')?.remove();
@@ -147,5 +206,45 @@ const td = 'border-b border-border/50 px-5 py-3.5 align-top';
         // Silently ignore or revert on error
       });
     });
+  });
+
+  const deleteBtn = document.getElementById('delete-selected-btn');
+
+  function syncDeleteButton() {
+    if (!deleteBtn) return;
+    const count = selectedIds().length;
+    deleteBtn.textContent = `Delete (${count})`;
+    deleteBtn.style.display = isEditingNow() && count > 0 ? 'inline-flex' : 'none';
+  }
+
+  document.addEventListener('submissions:selection', syncDeleteButton);
+  document.addEventListener('submissions:editing', syncDeleteButton);
+
+  deleteBtn?.addEventListener('click', async () => {
+    const ids = selectedIds();
+    if (ids.length === 0) return;
+    if (!confirm(`Delete ${ids.length} submission${ids.length === 1 ? '' : 's'}?`)) return;
+
+    const rows = Array.from(document.querySelectorAll<HTMLTableRowElement>('tr[data-id]')).filter(
+      (row) => ids.includes(Number(row.getAttribute('data-id'))),
+    );
+    rows.forEach((row) => (row.style.opacity = '0.5'));
+
+    try {
+      const res = await fetch('/admin/api/submissions', {
+        method: 'DELETE',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ ids }),
+      });
+      if (!res.ok) throw new Error();
+      rows.forEach((row) => row.remove());
+      syncSelectAll();
+      syncDeleteButton();
+      document.dispatchEvent(new CustomEvent('submissions:changed'));
+    } catch {
+      // Keep the selection intact so the user can retry.
+      alert('Failed to delete submissions');
+      rows.forEach((row) => (row.style.opacity = '1'));
+    }
   });
 </script>

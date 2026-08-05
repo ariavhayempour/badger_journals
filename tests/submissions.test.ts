@@ -128,6 +128,121 @@ describe('insertSubmission', () => {
   });
 });
 
+// --- deleteSubmissions DB helper (client mocked, no live DB) ---
+
+// Same client-mocking approach as withMockedSql, for the bulk-delete helper.
+async function withMockedDeleteSql(impl: SqlImpl) {
+  vi.resetModules();
+  const sql = vi.fn(impl);
+  vi.doMock(src('db/client'), () => ({ sql }));
+  const { deleteSubmissions } = await import('../src/db/submission');
+  return { deleteSubmissions, sql };
+}
+
+describe('deleteSubmissions', () => {
+  it('resolves void on a successful delete', async () => {
+    const { deleteSubmissions } = await withMockedDeleteSql(async () => []);
+    await expect(deleteSubmissions([1, 2, 3])).resolves.toBeUndefined();
+  });
+
+  it('propagates any error from the delete', async () => {
+    const { deleteSubmissions } = await withMockedDeleteSql(async () => {
+      throw new Error('connection reset');
+    });
+    await expect(deleteSubmissions([1])).rejects.toThrow('connection reset');
+  });
+
+  it('passes the id array as a single parameter, never concatenated into the SQL text', async () => {
+    const { deleteSubmissions, sql } = await withMockedDeleteSql(async () => []);
+    await deleteSubmissions([7, 8]);
+    const [strings, ...values] = sql.mock.calls[0] as [TemplateStringsArray, ...unknown[]];
+    expect(values).toEqual([[7, 8]]);
+    expect(strings.join('')).toContain('ANY(');
+    expect(strings.join('')).not.toContain('7');
+  });
+});
+
+// --- DELETE /admin/api/submissions bulk route (deleteSubmissions mocked) ---
+
+// Load the bulk route with the DB helper replaced, then DELETE the given raw body.
+async function deleteSubmissionsRequest(rawBody: string, impl?: (ids: number[]) => Promise<void>) {
+  vi.resetModules();
+  const deleteSubmissions = vi.fn(impl ?? (async () => undefined));
+  vi.doMock(src('db/submission'), () => ({ deleteSubmissions }));
+  const { DELETE } = await import('../src/pages/admin/api/submissions/index');
+  const request = new Request('http://localhost/admin/api/submissions', {
+    method: 'DELETE',
+    headers: { 'content-type': 'application/json' },
+    body: rawBody,
+  });
+  const res = await DELETE({ request } as never);
+  return { res, deleteSubmissions };
+}
+
+describe('DELETE /admin/api/submissions', () => {
+  it('deletes the given ids and returns 200 ok', async () => {
+    const { res, deleteSubmissions } = await deleteSubmissionsRequest(JSON.stringify({ ids: [4, 9] }));
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toBe('application/json');
+    expect(await res.json()).toEqual({ ok: true });
+    expect(deleteSubmissions).toHaveBeenCalledTimes(1);
+    expect(deleteSubmissions).toHaveBeenCalledWith([4, 9]);
+  });
+
+  it('returns 400 for an empty ids array and does not delete', async () => {
+    const { res, deleteSubmissions } = await deleteSubmissionsRequest(JSON.stringify({ ids: [] }));
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ ok: false });
+    expect(deleteSubmissions).not.toHaveBeenCalled();
+  });
+
+  it('returns 400 when ids is missing and does not delete', async () => {
+    const { res, deleteSubmissions } = await deleteSubmissionsRequest(JSON.stringify({}));
+    expect(res.status).toBe(400);
+    expect(deleteSubmissions).not.toHaveBeenCalled();
+  });
+
+  it('returns 400 when ids is not an array and does not delete', async () => {
+    const { res, deleteSubmissions } = await deleteSubmissionsRequest(JSON.stringify({ ids: 5 }));
+    expect(res.status).toBe(400);
+    expect(deleteSubmissions).not.toHaveBeenCalled();
+  });
+
+  it('returns 400 without throwing on malformed JSON and does not delete', async () => {
+    const { res, deleteSubmissions } = await deleteSubmissionsRequest('{ not json');
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ ok: false });
+    expect(deleteSubmissions).not.toHaveBeenCalled();
+  });
+
+  it('rejects non-positive-integer ids and does not delete', async () => {
+    for (const bad of [0, -1, 1.5, '3', null, NaN]) {
+      const { res, deleteSubmissions } = await deleteSubmissionsRequest(JSON.stringify({ ids: [1, bad] }));
+      expect(res.status, `ids containing ${String(bad)}`).toBe(400);
+      expect(deleteSubmissions).not.toHaveBeenCalled();
+    }
+  });
+
+  it('returns 500 without leaking error detail when the delete throws', async () => {
+    const { res } = await deleteSubmissionsRequest(JSON.stringify({ ids: [1] }), async () => {
+      throw new Error('boom');
+    });
+    expect(res.status).toBe(500);
+    expect(await res.json()).toEqual({ ok: false });
+  });
+});
+
+describe('/admin/api/submissions/[id]', () => {
+  it('no longer exports a single-item DELETE — the bulk route replaces it', async () => {
+    vi.resetModules();
+    vi.doMock(src('db/submission'), () => ({ setSubmissionRead: vi.fn() }));
+    // Indexed access, not `route.DELETE` — the latter is a compile error once the export is gone.
+    const route: Record<string, unknown> = await import('../src/pages/admin/api/submissions/[id]');
+    expect(route['DELETE']).toBeUndefined();
+    expect(route['PATCH']).toBeTypeOf('function');
+  });
+});
+
 // --- POST /api/inquiry route (insertSubmission mocked) ---
 
 // Load the route with insertSubmission and the rate limiter replaced, then POST the given raw body.
