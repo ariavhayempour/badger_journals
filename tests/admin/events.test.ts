@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
+import { src } from '../mock-path';
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import type { EventRow } from '../../src/db/schema';
 import type { EventInput } from '../../src/lib/event-validation';
@@ -25,8 +26,8 @@ const getReq = (url: string): Request => new Request(url, { method: 'GET' });
 
 // Load the index page with the rsvps/submissions DB helpers (read by the RSVP-count column and AdminLayout sidebar counts) replaced by spies.
 function mockChrome() {
-  vi.doMock('../../src/db/rsvp', () => ({ listRsvps: vi.fn(async () => []) }));
-  vi.doMock('../../src/db/submission', () => ({ listSubmissions: vi.fn(async () => []) }));
+  vi.doMock(src('db/rsvp'), () => ({ listRsvps: vi.fn(async () => []) }));
+  vi.doMock(src('db/submission'), () => ({ listSubmissions: vi.fn(async () => []) }));
 }
 
 async function loadIndex(
@@ -37,7 +38,7 @@ async function loadIndex(
   const listEvents = vi.fn(async () => opts.events ?? []);
   const insertEvent = vi.fn(opts.insert ?? (async () => eventRow));
   const deleteEvent = vi.fn(opts.del ?? (async () => {}));
-  vi.doMock('../../src/db/event', () => ({ listEvents, insertEvent, deleteEvent }));
+  vi.doMock(src('db/event'), () => ({ listEvents, insertEvent, deleteEvent }));
   const { default: Comp } = await import('../../src/pages/admin/events/index.astro');
   return { Comp, listEvents, insertEvent, deleteEvent };
 }
@@ -49,15 +50,15 @@ async function loadEdit(opts: { event?: EventRow | null; update?: (id: number, i
   const row = opts.event === undefined ? eventRow : opts.event;
   const getEvent = vi.fn(async () => row);
   const updateEvent = vi.fn(opts.update ?? (async () => row));
-  vi.doMock('../../src/db/event', () => ({ getEvent, updateEvent }));
+  vi.doMock(src('db/event'), () => ({ getEvent, updateEvent }));
   const { default: Comp } = await import('../../src/pages/admin/events/[id].astro');
   return { Comp, getEvent, updateEvent };
 }
 
 afterEach(() => {
-  vi.doUnmock('../../src/db/event');
-  vi.doUnmock('../../src/db/rsvp');
-  vi.doUnmock('../../src/db/submission');
+  vi.doUnmock(src('db/event'));
+  vi.doUnmock(src('db/rsvp'));
+  vi.doUnmock(src('db/submission'));
   vi.resetModules();
 });
 

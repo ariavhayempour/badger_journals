@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
+import { src } from '../mock-path';
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import type { EventRow } from '../../src/db/schema';
 
@@ -15,18 +16,18 @@ const eventRow: EventRow = {
 // Load the dashboard with all three DB reads replaced by spies (CI has no DATABASE_URL).
 async function loadDashboard(opts: { events?: EventRow[] } = {}) {
   vi.resetModules();
-  vi.doMock('../../src/db/rsvp', () => ({ listRsvps: vi.fn(async () => []) }));
-  vi.doMock('../../src/db/submission', () => ({ listSubmissions: vi.fn(async () => []) }));
+  vi.doMock(src('db/rsvp'), () => ({ listRsvps: vi.fn(async () => []) }));
+  vi.doMock(src('db/submission'), () => ({ listSubmissions: vi.fn(async () => []) }));
   const listEvents = vi.fn(async () => opts.events ?? []);
-  vi.doMock('../../src/db/event', () => ({ listEvents }));
+  vi.doMock(src('db/event'), () => ({ listEvents }));
   const { default: Comp } = await import('../../src/pages/admin/index.astro');
   return { Comp, listEvents };
 }
 
 afterEach(() => {
-  vi.doUnmock('../../src/db/rsvp');
-  vi.doUnmock('../../src/db/submission');
-  vi.doUnmock('../../src/db/event');
+  vi.doUnmock(src('db/rsvp'));
+  vi.doUnmock(src('db/submission'));
+  vi.doUnmock(src('db/event'));
   vi.resetModules();
 });
 

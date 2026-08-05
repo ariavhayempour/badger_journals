@@ -3,7 +3,7 @@ allowBuilds:
   esbuild: true
   sharp: true
 
-# Dedupe to one vite: Astro 5.18 pins vite@6, but Vitest pulls vite@7 whose
-# `test` type augmentation then lands on the wrong vite and breaks `astro check`.
+# Dedupe to one vite: Astro 7 requires vite@8, and a second copy pulled in by
+# Vitest lands its `test` type augmentation on the wrong vite, breaking `astro check`.
 overrides:
-  vite: ^6.4.1
+  vite: ^8.0.13

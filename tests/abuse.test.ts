@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
+import { src } from './mock-path';
 import { isBotSubmission, HONEYPOT_FIELD } from '../src/lib/honeypot';
 import { validateRsvp } from '../src/lib/rsvp-validation';
 import { validateSubmission } from '../src/lib/submission-validation';
@@ -42,10 +43,10 @@ describe('isBotSubmission', () => {
 // --- Route coverage: honeypot silent-accept on both endpoints ---
 
 afterEach(() => {
-  vi.doUnmock('../src/db/rsvp');
-  vi.doUnmock('../src/db/submission');
-  vi.doUnmock('../src/db/rate-limit');
-  vi.doUnmock('../src/db/client');
+  vi.doUnmock(src('db/rsvp'));
+  vi.doUnmock(src('db/submission'));
+  vi.doUnmock(src('db/rate-limit'));
+  vi.doUnmock(src('db/client'));
   vi.resetModules();
 });
 
@@ -55,9 +56,9 @@ type Limiter = () => Promise<number>;
 async function postRsvp(body: unknown, rateLimit: Limiter = async () => 1) {
   vi.resetModules();
   const insertRsvp = vi.fn(async () => ({ status: 'ok' as const }));
-  vi.doMock('../src/db/rsvp', () => ({ insertRsvp }));
+  vi.doMock(src('db/rsvp'), () => ({ insertRsvp }));
   const hitRateLimit = vi.fn(rateLimit);
-  vi.doMock('../src/db/rate-limit', () => ({ hitRateLimit }));
+  vi.doMock(src('db/rate-limit'), () => ({ hitRateLimit }));
   const { POST } = await import('../src/pages/api/rsvp');
   const request = new Request('http://localhost/api/rsvp', {
     method: 'POST',
@@ -71,9 +72,9 @@ async function postRsvp(body: unknown, rateLimit: Limiter = async () => 1) {
 async function postInquiry(body: unknown, rateLimit: Limiter = async () => 1) {
   vi.resetModules();
   const insertSubmission = vi.fn(async () => undefined);
-  vi.doMock('../src/db/submission', () => ({ insertSubmission }));
+  vi.doMock(src('db/submission'), () => ({ insertSubmission }));
   const hitRateLimit = vi.fn(rateLimit);
-  vi.doMock('../src/db/rate-limit', () => ({ hitRateLimit }));
+  vi.doMock(src('db/rate-limit'), () => ({ hitRateLimit }));
   const { POST } = await import('../src/pages/api/inquiry');
   const request = new Request('http://localhost/api/inquiry', {
     method: 'POST',
@@ -214,17 +215,17 @@ describe('hitRateLimit', () => {
     vi.resetModules();
     const impl: SqlImpl = async () => [{ count: 3 }];
     const sql = vi.fn(impl);
-    vi.doMock('../src/db/client', () => ({ sql }));
+    vi.doMock(src('db/client'), () => ({ sql }));
     const { hitRateLimit } = await import('../src/db/rate-limit');
     expect(await hitRateLimit('k', 'WSTART', 'EXP')).toBe(3);
-    vi.doUnmock('../src/db/client');
+    vi.doUnmock(src('db/client'));
   });
 
   it('passes values as parameters, never concatenated into the SQL text', async () => {
     vi.resetModules();
     const impl: SqlImpl = async () => [{ count: 1 }];
     const sql = vi.fn(impl);
-    vi.doMock('../src/db/client', () => ({ sql }));
+    vi.doMock(src('db/client'), () => ({ sql }));
     const { hitRateLimit } = await import('../src/db/rate-limit');
     await hitRateLimit('rsvp:1.2.3.4:60000', 'WSTART', 'EXP');
     const insert = sql.mock.calls.find((call) => call[0].join('').includes('INSERT INTO rate_limit_hits'));
@@ -232,7 +233,7 @@ describe('hitRateLimit', () => {
     const [strings, ...values] = insert!;
     expect(values).toEqual(['rsvp:1.2.3.4:60000', 'WSTART', 'EXP']);
     expect(strings.join('')).not.toContain('rsvp:1.2.3.4:60000');
-    vi.doUnmock('../src/db/client');
+    vi.doUnmock(src('db/client'));
   });
 });
 
