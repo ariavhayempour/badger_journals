@@ -72,6 +72,7 @@ export const RATE_LIMIT_COLUMNS = {
   windowStart: 'window_start',
   count: 'count',
   expiresAt: 'expires_at',
+  lastHitAt: 'last_hit_at',
 } as const;
 
 export const EVENT_COLUMNS = {

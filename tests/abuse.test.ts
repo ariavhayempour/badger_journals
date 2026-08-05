@@ -338,6 +338,71 @@ describe('hitRateLimit', () => {
   });
 });
 
+// --- touchRateLimit DB helper (client mocked, no live DB) ---
+
+describe('touchRateLimit', () => {
+  it('returns the previous hit timestamp so the caller can measure the gap', async () => {
+    vi.resetModules();
+    const impl: SqlImpl = async () => [{ prev_last_hit_at: '2026-01-01T00:00:00.000Z' }];
+    const sql = vi.fn(impl);
+    vi.doMock(src('db/client'), () => ({ sql }));
+    const { touchRateLimit } = await import('../src/db/rate-limit');
+    expect(await touchRateLimit('k', 'NOW', 'EXP')).toBe('2026-01-01T00:00:00.000Z');
+    vi.doUnmock(src('db/client'));
+  });
+
+  it('returns null on the first hit for a key, when there is no previous timestamp', async () => {
+    vi.resetModules();
+    const impl: SqlImpl = async () => [{ prev_last_hit_at: null }];
+    const sql = vi.fn(impl);
+    vi.doMock(src('db/client'), () => ({ sql }));
+    const { touchRateLimit } = await import('../src/db/rate-limit');
+    expect(await touchRateLimit('k', 'NOW', 'EXP')).toBeNull();
+    vi.doUnmock(src('db/client'));
+  });
+
+  it('returns null when the upsert yields no row at all', async () => {
+    vi.resetModules();
+    const impl: SqlImpl = async () => [];
+    const sql = vi.fn(impl);
+    vi.doMock(src('db/client'), () => ({ sql }));
+    const { touchRateLimit } = await import('../src/db/rate-limit');
+    expect(await touchRateLimit('k', 'NOW', 'EXP')).toBeNull();
+    vi.doUnmock(src('db/client'));
+  });
+
+  it('reads the pre-update timestamp via a CTE, since a bare RETURNING yields the new value', async () => {
+    vi.resetModules();
+    const impl: SqlImpl = async () => [{ prev_last_hit_at: null }];
+    const sql = vi.fn(impl);
+    vi.doMock(src('db/client'), () => ({ sql }));
+    const { touchRateLimit } = await import('../src/db/rate-limit');
+    await touchRateLimit('inquiry:ip:1.2.3.4', 'NOW', 'EXP');
+    const upsert = sql.mock.calls.find((call) => call[0].join('').includes('INSERT INTO rate_limit_hits'));
+    expect(upsert, 'upsert call').toBeDefined();
+    const text = upsert![0].join('');
+    expect(text).toMatch(/WITH\s+prev\s+AS/i);
+    expect(text).toMatch(/RETURNING\s*\(\s*SELECT\s+last_hit_at\s+FROM\s+prev\s*\)/i);
+    vi.doUnmock(src('db/client'));
+  });
+
+  it('passes values as parameters, never concatenated into the SQL text', async () => {
+    vi.resetModules();
+    const impl: SqlImpl = async () => [{ prev_last_hit_at: null }];
+    const sql = vi.fn(impl);
+    vi.doMock(src('db/client'), () => ({ sql }));
+    const { touchRateLimit } = await import('../src/db/rate-limit');
+    await touchRateLimit('inquiry:ip:1.2.3.4', 'NOW', 'EXP');
+    const upsert = sql.mock.calls.find((call) => call[0].join('').includes('INSERT INTO rate_limit_hits'));
+    const [strings, ...values] = upsert!;
+    // The CTE binds the key and the timestamp twice each, so assert on the set rather than the order.
+    expect(new Set(values)).toEqual(new Set(['inquiry:ip:1.2.3.4', 'NOW', 'EXP']));
+    expect(strings.join('')).not.toContain('inquiry:ip:1.2.3.4');
+    expect(strings.join('')).not.toContain('NOW');
+    vi.doUnmock(src('db/client'));
+  });
+});
+
 // --- Rate limit at the route: over-limit, under-limit, fail-open ---
 
 describe('rate limit — POST /api/rsvp', () => {
