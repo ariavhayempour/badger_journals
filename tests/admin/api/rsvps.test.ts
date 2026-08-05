@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
+import { src } from '../../mock-path';
 import type { UpdateRsvpResult } from '../../../src/db/rsvp';
 
 afterEach(() => {
-  vi.doUnmock('../../../src/db/rsvp');
+  vi.doUnmock(src('db/rsvp'));
   vi.resetModules();
 });
 
@@ -10,7 +11,7 @@ async function loadRoute(overrides: { updateRsvp?: (...args: unknown[]) => unkno
   vi.resetModules();
   const updateRsvp = vi.fn(overrides.updateRsvp ?? (async (): Promise<UpdateRsvpResult> => ({ status: 'not_found' })));
   const deleteRsvp = vi.fn(overrides.deleteRsvp ?? (async () => undefined));
-  vi.doMock('../../../src/db/rsvp', () => ({ updateRsvp, deleteRsvp }));
+  vi.doMock(src('db/rsvp'), () => ({ updateRsvp, deleteRsvp }));
   const route = await import('../../../src/pages/admin/api/rsvps/[id]');
   return { ...route, updateRsvp, deleteRsvp };
 }

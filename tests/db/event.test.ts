@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
+import { src } from '../mock-path';
 import type { EventInput } from '../../src/lib/event-validation';
 
 type SqlImpl = (strings: TemplateStringsArray, ...values: unknown[]) => Promise<unknown>;
@@ -7,7 +8,7 @@ type SqlImpl = (strings: TemplateStringsArray, ...values: unknown[]) => Promise<
 async function withMockedSql(impl: SqlImpl) {
   vi.resetModules();
   const sql = vi.fn(impl);
-  vi.doMock('../../src/db/client', () => ({ sql }));
+  vi.doMock(src('db/client'), () => ({ sql }));
   const mod = await import('../../src/db/event');
   return { ...mod, sql };
 }
@@ -28,7 +29,7 @@ const row = {
 };
 
 afterEach(() => {
-  vi.doUnmock('../../src/db/client');
+  vi.doUnmock(src('db/client'));
   vi.resetModules();
 });
 

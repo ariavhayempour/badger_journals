@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
+import { src } from './mock-path';
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { validateRsvp, validateRsvpEdit, type RsvpInput } from '../src/lib/rsvp-validation';
 import RsvpForm from '../src/components/RsvpForm.astro';
@@ -76,15 +77,15 @@ type SqlImpl = (strings: TemplateStringsArray, ...values: unknown[]) => Promise<
 async function withMockedSql(impl: SqlImpl) {
   vi.resetModules();
   const sql = vi.fn(impl);
-  vi.doMock('../src/db/client', () => ({ sql }));
+  vi.doMock(src('db/client'), () => ({ sql }));
   const rsvpDb = await import('../src/db/rsvp');
   return { ...rsvpDb, sql };
 }
 
 afterEach(() => {
-  vi.doUnmock('../src/db/client');
-  vi.doUnmock('../src/db/rsvp');
-  vi.doUnmock('../src/db/rate-limit');
+  vi.doUnmock(src('db/client'));
+  vi.doUnmock(src('db/rsvp'));
+  vi.doUnmock(src('db/rate-limit'));
   vi.resetModules();
 });
 
@@ -188,9 +189,9 @@ async function postRsvp(
 ) {
   vi.resetModules();
   const insertRsvp = vi.fn(insertImpl ?? (async () => ({ status: 'ok' as const })));
-  vi.doMock('../src/db/rsvp', () => ({ insertRsvp }));
+  vi.doMock(src('db/rsvp'), () => ({ insertRsvp }));
   const hitRateLimit = vi.fn(rateLimit);
-  vi.doMock('../src/db/rate-limit', () => ({ hitRateLimit }));
+  vi.doMock(src('db/rate-limit'), () => ({ hitRateLimit }));
   const { POST } = await import('../src/pages/api/rsvp');
   const request = new Request('http://localhost/api/rsvp', {
     method: 'POST',

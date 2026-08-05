@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
+import { src } from './mock-path';
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import type { EventRow } from '../src/db/schema';
 
@@ -35,10 +36,10 @@ const FUTURE_SAME_MONTH: EventRow = {
 // Render the page against seeded rows by mocking the DB read (no live DB in CI).
 async function renderWith(rows: EventRow[], url = 'http://localhost/meetings'): Promise<string> {
   vi.resetModules();
-  vi.doMock('../src/db/event', () => ({ listEvents: async () => rows }));
+  vi.doMock(src('db/event'), () => ({ listEvents: async () => rows }));
   const { default: Meetings } = await import('../src/pages/meetings.astro');
   const html = await (await AstroContainer.create()).renderToString(Meetings, { request: new Request(url) });
-  vi.doUnmock('../src/db/event');
+  vi.doUnmock(src('db/event'));
   return html;
 }
 

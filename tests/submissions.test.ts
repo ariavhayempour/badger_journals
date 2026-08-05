@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
+import { src } from './mock-path';
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { validateSubmission, type SubmissionInput } from '../src/lib/submission-validation';
 import type { SubmissionType } from '../src/db/schema';
@@ -86,15 +87,15 @@ type SqlImpl = (strings: TemplateStringsArray, ...values: unknown[]) => Promise<
 async function withMockedSql(impl: SqlImpl) {
   vi.resetModules();
   const sql = vi.fn(impl);
-  vi.doMock('../src/db/client', () => ({ sql }));
+  vi.doMock(src('db/client'), () => ({ sql }));
   const { insertSubmission } = await import('../src/db/submission');
   return { insertSubmission, sql };
 }
 
 afterEach(() => {
-  vi.doUnmock('../src/db/client');
-  vi.doUnmock('../src/db/submission');
-  vi.doUnmock('../src/db/rate-limit');
+  vi.doUnmock(src('db/client'));
+  vi.doUnmock(src('db/submission'));
+  vi.doUnmock(src('db/rate-limit'));
   vi.resetModules();
 });
 
@@ -137,9 +138,9 @@ async function postInquiry(
 ) {
   vi.resetModules();
   const insertSubmission = vi.fn(insertImpl ?? (async () => undefined));
-  vi.doMock('../src/db/submission', () => ({ insertSubmission }));
+  vi.doMock(src('db/submission'), () => ({ insertSubmission }));
   const hitRateLimit = vi.fn(rateLimit);
-  vi.doMock('../src/db/rate-limit', () => ({ hitRateLimit }));
+  vi.doMock(src('db/rate-limit'), () => ({ hitRateLimit }));
   const { POST } = await import('../src/pages/api/inquiry');
   const request = new Request('http://localhost/api/inquiry', {
     method: 'POST',
