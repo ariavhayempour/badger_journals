@@ -26,19 +26,29 @@ const td = 'border-b border-border/50 px-5 py-3.5 align-top';
       <table class="w-full border-collapse text-sm">
         <thead>
           <tr>
-            <th scope="col" class={`${th} w-12 text-center`} style="display: none;" data-select-all-cell>
-              <input
-                type="checkbox"
-                id="select-all-submissions"
-                class="size-4 cursor-pointer align-middle accent-primary"
-                aria-label="Select all submissions"
-              />
-            </th>
             <th scope="col" class={th}>Name</th>
             <th scope="col" class={th}>Email</th>
             <th scope="col" class={th}>Type</th>
             <th scope="col" class={th}>Message</th>
             <th scope="col" class={th}>Received</th>
+            <th scope="col" class={`${th} w-24 text-right`} style="display: none;" data-select-all-cell>
+              <div class="flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  id="delete-selected-btn"
+                  style="display: none;"
+                  class="text-xs font-semibold whitespace-nowrap text-destructive hover:underline cursor-pointer"
+                >
+                  Delete (0)
+                </button>
+                <input
+                  type="checkbox"
+                  id="select-all-submissions"
+                  class="size-4 cursor-pointer align-middle accent-primary"
+                  aria-label="Select all submissions"
+                />
+              </div>
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -51,14 +61,6 @@ const td = 'border-b border-border/50 px-5 py-3.5 align-top';
               data-search={`${s.name} ${s.email} ${s.message}`.toLowerCase()}
               title={s.is_read ? 'Mark as unread' : 'Mark as read'}
             >
-              <td class={`${td} w-12 text-center`} style="display: none;" data-action="select">
-                <input
-                  type="checkbox"
-                  class="size-4 cursor-pointer align-middle accent-primary"
-                  data-select-row
-                  aria-label={`Select submission from ${s.name}`}
-                />
-              </td>
               <td class={`${td} ${s.is_read ? 'font-medium text-muted-foreground' : 'font-bold'}`}>
                 {!s.is_read && <span class="mr-1.5 inline-block size-2 rounded-full bg-primary" aria-label="Unread"></span>}
                 {s.name}
@@ -67,6 +69,14 @@ const td = 'border-b border-border/50 px-5 py-3.5 align-top';
               <td class={td}><Badge variant={s.submission_type}>{label[s.submission_type]}</Badge></td>
               <td class={`${td} max-w-[40ch] whitespace-pre-wrap ${s.is_read ? 'text-muted-foreground' : 'font-medium'}`}>{s.message}</td>
               <td class={`${td} whitespace-nowrap text-muted-foreground`}>{formatTimestamp(s.created_at)}</td>
+              <td class={`${td} w-24 text-right`} style="display: none;" data-action="select">
+                <input
+                  type="checkbox"
+                  class="size-4 cursor-pointer align-middle accent-primary"
+                  data-select-row
+                  aria-label={`Select submission from ${s.name}`}
+                />
+              </td>
             </tr>
           ))}
         </tbody>
@@ -182,9 +192,8 @@ const td = 'border-b border-border/50 px-5 py-3.5 align-top';
       row.setAttribute('data-read', String(nextRead));
       row.title = nextRead ? 'Mark as unread' : 'Mark as read';
 
-      // Offset by the leading select cell, which is always present in the DOM.
-      const nameTd = row.children[1] as HTMLElement;
-      const msgTd = row.children[4] as HTMLElement;
+      const nameTd = row.children[0] as HTMLElement;
+      const msgTd = row.children[3] as HTMLElement;
       if (nextRead) {
         nameTd.className = nameTd.className.replace('font-bold', 'font-medium text-muted-foreground');
         nameTd.querySelector('span[aria-label="Unread"]')?.remove();
