@@ -21,10 +21,6 @@ export async function setSubmissionRead(id: number, isRead: boolean): Promise<vo
   await sql`UPDATE submissions SET is_read = ${isRead} WHERE id = ${id}`;
 }
 
-export async function deleteSubmission(id: number): Promise<void> {
-  await sql`DELETE FROM submissions WHERE id = ${id}`;
-}
-
 // One round trip for a bulk selection — the array binds as a single parameter.
 export async function deleteSubmissions(ids: number[]): Promise<void> {
   await sql`DELETE FROM submissions WHERE id = ANY(${ids})`;

@@ -232,6 +232,17 @@ describe('DELETE /admin/api/submissions', () => {
   });
 });
 
+describe('/admin/api/submissions/[id]', () => {
+  it('no longer exports a single-item DELETE — the bulk route replaces it', async () => {
+    vi.resetModules();
+    vi.doMock(src('db/submission'), () => ({ setSubmissionRead: vi.fn() }));
+    // Indexed access, not `route.DELETE` — the latter is a compile error once the export is gone.
+    const route: Record<string, unknown> = await import('../src/pages/admin/api/submissions/[id]');
+    expect(route['DELETE']).toBeUndefined();
+    expect(route['PATCH']).toBeTypeOf('function');
+  });
+});
+
 // --- POST /api/inquiry route (insertSubmission mocked) ---
 
 // Load the route with insertSubmission and the rate limiter replaced, then POST the given raw body.
