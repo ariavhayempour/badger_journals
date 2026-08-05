@@ -10,6 +10,7 @@ const migration = readMigration('0001_init.sql');
 const rateLimitMigration = readMigration('0002_rate_limit.sql');
 const eventsMigration = readMigration('0003_events.sql');
 const rsvpStatusMigration = readMigration('0005_rsvp_status.sql');
+const slidingMigration = readMigration('0006_rate_limit_sliding.sql');
 
 describe('schema ↔ DDL sync', () => {
   it('SUBMISSION_TYPES equals the submission_type CHECK values in the migration', () => {
@@ -28,12 +29,20 @@ describe('schema ↔ DDL sync', () => {
     expect(checkValues).toEqual([...RSVP_STATUSES]);
   });
 
-  it('RATE_LIMIT_COLUMNS mirror the rate_limit_hits columns in the migration', () => {
+  it('RATE_LIMIT_COLUMNS mirror the rate_limit_hits columns across both migrations', () => {
     const block = rateLimitMigration.match(/CREATE TABLE rate_limit_hits\s*\(([\s\S]*?)\);/i);
     expect(block, 'rate_limit_hits table not found in migration').not.toBeNull();
 
-    const ddlColumns = [...block![1].matchAll(/^\s*([a-z_]+)\s+(?:TEXT|TIMESTAMPTZ|INTEGER)\b/gim)].map((m) => m[1]);
-    expect(ddlColumns.sort()).toEqual([...Object.values(RATE_LIMIT_COLUMNS)].sort());
+    const created = [...block![1].matchAll(/^\s*([a-z_]+)\s+(?:TEXT|TIMESTAMPTZ|INTEGER)\b/gim)].map((m) => m[1]);
+    // Columns added later arrive via ALTER, so the mirror spans the create plus every subsequent add.
+    const added = [...slidingMigration.matchAll(/ADD COLUMN(?:\s+IF NOT EXISTS)?\s+([a-z_]+)/gi)].map((m) => m[1]);
+
+    expect([...created, ...added].sort()).toEqual([...Object.values(RATE_LIMIT_COLUMNS)].sort());
+  });
+
+  it('adds last_hit_at as a nullable column so the migration cannot fail on existing rows', () => {
+    expect(slidingMigration).toMatch(/ADD COLUMN(?:\s+IF NOT EXISTS)?\s+last_hit_at\s+TIMESTAMPTZ/i);
+    expect(slidingMigration).not.toMatch(/last_hit_at[^;]*NOT NULL/i);
   });
 
   it('EVENT_COLUMNS mirror the events columns in the migration', () => {

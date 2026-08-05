@@ -17,3 +17,17 @@ export function bucketKey(endpoint: string, ip: string, nowMs: number): string {
 export function isOverLimit(count: number): boolean {
   return count > MAX_HITS;
 }
+
+// The inquiry endpoint uses a rolling gap instead of a fixed window, so submissions can't burst across a boundary.
+export const INQUIRY_MIN_GAP_MS = 180_000;
+
+// A null lastHitMs means no prior submission, so nothing to wait for.
+export function isWithinGap(lastHitMs: number | null, nowMs: number, gapMs: number): boolean {
+  return lastHitMs !== null && nowMs - lastHitMs < gapMs;
+}
+
+// Remaining wait in whole seconds, rounded up so callers never advise retrying early; 0 once the gap has elapsed.
+export function retryAfterSeconds(lastHitMs: number | null, nowMs: number, gapMs: number): number {
+  if (lastHitMs === null) return 0;
+  return Math.max(0, Math.ceil((lastHitMs + gapMs - nowMs) / 1000));
+}

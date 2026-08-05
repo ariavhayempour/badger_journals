@@ -21,4 +21,18 @@ describe('db client env guard', () => {
     const mod = await import('../../src/db/client');
     expect(mod.sql).toBeDefined();
   });
+
+  // Guards the driver contract itself: importing the client must leave date/time columns as strings.
+  it('registers parsers so date/time columns decode to strings, not Date objects', async () => {
+    process.env.DATABASE_URL = 'postgres://user:pass@host/db?sslmode=require';
+    vi.resetModules();
+    await import('../../src/db/client');
+    const { types } = await import('@neondatabase/serverless');
+
+    for (const oid of [types.builtins.TIMESTAMPTZ, types.builtins.TIMESTAMP, types.builtins.DATE]) {
+      expect(oid, 'driver no longer exposes this built-in OID').toBeTypeOf('number');
+      const decoded = types.getTypeParser(oid)('2026-08-05 17:52:04.123+00');
+      expect(decoded, `OID ${oid} still decodes to a Date`).toBeTypeOf('string');
+    }
+  });
 });

@@ -134,13 +134,15 @@ describe('insertSubmission', () => {
 async function postInquiry(
   rawBody: string,
   insertImpl?: (i: SubmissionInput) => Promise<void>,
-  rateLimit: () => Promise<number> = async () => 1,
+  // Previous hit for a bucket, as touchRateLimit returns it; null means no prior submission.
+  touch: () => Promise<string | null> = async () => null,
 ) {
   vi.resetModules();
   const insertSubmission = vi.fn(insertImpl ?? (async () => undefined));
   vi.doMock(src('db/submission'), () => ({ insertSubmission }));
-  const hitRateLimit = vi.fn(rateLimit);
-  vi.doMock(src('db/rate-limit'), () => ({ hitRateLimit }));
+  const touchRateLimit = vi.fn(touch);
+  const hitRateLimit = vi.fn(async () => 1);
+  vi.doMock(src('db/rate-limit'), () => ({ touchRateLimit, hitRateLimit }));
   const { POST } = await import('../src/pages/api/inquiry');
   const request = new Request('http://localhost/api/inquiry', {
     method: 'POST',
@@ -194,10 +196,11 @@ describe('POST /api/inquiry', () => {
     expect(insertSubmission).not.toHaveBeenCalled();
   });
 
-  it('returns 429 rate_limited when over the limit and does not insert', async () => {
-    const { res, insertSubmission } = await postInquiry(JSON.stringify(valid), undefined, async () => 6);
+  it('returns 429 rate_limited inside the submission gap and does not insert', async () => {
+    const recent = new Date(Date.now() - 30_000).toISOString();
+    const { res, insertSubmission } = await postInquiry(JSON.stringify(valid), undefined, async () => recent);
     expect(res.status).toBe(429);
-    expect(await res.json()).toEqual({ ok: false, code: 'rate_limited' });
+    expect(await res.json()).toMatchObject({ ok: false, code: 'rate_limited' });
     expect(insertSubmission).not.toHaveBeenCalled();
   });
 });
