@@ -67,6 +67,7 @@ const field = 'w-full rounded-lg border border-input bg-background px-3 py-2 tex
 <script>
   import { validateSubmission, countWords, type SubmissionField } from '../lib/submission-validation';
   import { MAX_MESSAGE_WORDS } from '../lib/limits';
+  import { rateLimitMessage } from '../lib/rate-limit-message';
   import type { SubmissionType } from '../db/schema';
 
   type ApiError = { field: SubmissionField; message: string };
@@ -198,7 +199,9 @@ const field = 'w-full rounded-lg border border-input bg-background px-3 py-2 tex
           errors.forEach((err) => setError(form, err.field, err.message));
           firstInvalid(form, errors);
         } else if (res.status === 429) {
-          showStatus(form, "You're doing that too often. Please wait a minute and try again.", 'error');
+          // Values are deliberately not reset here, so the user can resend once the wait is over.
+          const body = (await res.json().catch(() => ({}))) as { retryAfterSeconds?: number };
+          showStatus(form, rateLimitMessage(body.retryAfterSeconds), 'error');
         } else {
           showStatus(form, 'Something went wrong. Please try again.', 'error');
         }

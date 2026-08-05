@@ -15,6 +15,7 @@ import {
   isWithinGap,
 } from '../src/lib/rate-limit';
 import { emailBucketKey } from '../src/lib/inquiry-identity';
+import { rateLimitMessage } from '../src/lib/rate-limit-message';
 
 // --- isBotSubmission (pure) ---
 
@@ -312,6 +313,48 @@ describe('emailBucketKey', () => {
 
   it('scopes the key to the inquiry endpoint so it cannot collide with an ip bucket', () => {
     expect(emailBucketKey({ email: 'badger@wisc.edu' })).toMatch(/^inquiry:email:[0-9a-f]{64}$/);
+  });
+});
+
+// --- Rate-limit message copy (pure) ---
+
+describe('rateLimitMessage', () => {
+  it('rounds a sub-minute wait up to one minute, never advising a retry that is still too early', () => {
+    expect(rateLimitMessage(1)).toContain('1 more minute');
+    expect(rateLimitMessage(59)).toContain('1 more minute');
+    expect(rateLimitMessage(60)).toContain('1 more minute');
+  });
+
+  it('pluralises a longer wait', () => {
+    expect(rateLimitMessage(61)).toContain('2 more minutes');
+    expect(rateLimitMessage(180)).toContain('3 more minutes');
+  });
+
+  it('never says "1 more minutes"', () => {
+    for (let s = 1; s <= 180; s += 1) {
+      const message = rateLimitMessage(s);
+      if (message.includes('1 more minute')) expect(message).not.toContain('1 more minutes');
+    }
+  });
+
+  it('falls back to generic copy when the server sends no wait time', () => {
+    const generic = rateLimitMessage(undefined);
+    expect(generic).toMatch(/too often|try again/i);
+    expect(generic).not.toContain('NaN');
+    expect(generic).not.toContain('undefined');
+  });
+
+  it('falls back to generic copy for a non-positive or nonsensical wait', () => {
+    for (const value of [0, -5, Number.NaN, Number.POSITIVE_INFINITY]) {
+      const message = rateLimitMessage(value);
+      expect(message).not.toContain('NaN');
+      expect(message).not.toContain('Infinity');
+      expect(message).not.toContain('-');
+    }
+  });
+
+  it('tells the user their message was kept, since the form preserves what they typed', () => {
+    expect(rateLimitMessage(90).toLowerCase()).toContain('message');
   });
 });
 
