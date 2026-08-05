@@ -4,7 +4,16 @@ import { isBotSubmission, HONEYPOT_FIELD } from '../src/lib/honeypot';
 import { validateRsvp } from '../src/lib/rsvp-validation';
 import { validateSubmission } from '../src/lib/submission-validation';
 import { MAX_NAME, MAX_EMAIL, MAX_MESSAGE } from '../src/lib/limits';
-import { WINDOW_MS, MAX_HITS, windowStart, bucketKey, isOverLimit } from '../src/lib/rate-limit';
+import {
+  WINDOW_MS,
+  MAX_HITS,
+  windowStart,
+  bucketKey,
+  isOverLimit,
+  INQUIRY_MIN_GAP_MS,
+  retryAfterSeconds,
+  isWithinGap,
+} from '../src/lib/rate-limit';
 
 // --- isBotSubmission (pure) ---
 
@@ -203,6 +212,50 @@ describe('rate-limit policy', () => {
   it('is over limit only beyond MAX_HITS', () => {
     expect(isOverLimit(MAX_HITS)).toBe(false);
     expect(isOverLimit(MAX_HITS + 1)).toBe(true);
+  });
+});
+
+// --- Sliding-gap policy for the inquiry endpoint (pure, clock injected) ---
+
+describe('inquiry sliding-gap policy', () => {
+  it('enforces a three-minute gap', () => {
+    expect(INQUIRY_MIN_GAP_MS).toBe(180_000);
+  });
+
+  it('reports the full gap when no time has elapsed', () => {
+    expect(retryAfterSeconds(1_000_000, 1_000_000, INQUIRY_MIN_GAP_MS)).toBe(180);
+  });
+
+  it('reports one second remaining at 179s elapsed', () => {
+    const last = 1_000_000;
+    expect(retryAfterSeconds(last, last + 179_000, INQUIRY_MIN_GAP_MS)).toBe(1);
+  });
+
+  it('reports zero exactly at the gap boundary', () => {
+    const last = 1_000_000;
+    expect(retryAfterSeconds(last, last + INQUIRY_MIN_GAP_MS, INQUIRY_MIN_GAP_MS)).toBe(0);
+  });
+
+  it('never returns a negative wait once the gap has passed', () => {
+    const last = 1_000_000;
+    expect(retryAfterSeconds(last, last + 10 * INQUIRY_MIN_GAP_MS, INQUIRY_MIN_GAP_MS)).toBe(0);
+  });
+
+  it('rounds a partial second up so the caller never advises retrying too early', () => {
+    const last = 1_000_000;
+    expect(retryAfterSeconds(last, last + 179_500, INQUIRY_MIN_GAP_MS)).toBe(1);
+  });
+
+  it('blocks within the gap and allows at or beyond it', () => {
+    const last = 1_000_000;
+    expect(isWithinGap(last, last, INQUIRY_MIN_GAP_MS)).toBe(true);
+    expect(isWithinGap(last, last + 179_999, INQUIRY_MIN_GAP_MS)).toBe(true);
+    expect(isWithinGap(last, last + INQUIRY_MIN_GAP_MS, INQUIRY_MIN_GAP_MS)).toBe(false);
+  });
+
+  it('allows the first-ever submission, when there is no previous hit', () => {
+    expect(isWithinGap(null, 1_000_000, INQUIRY_MIN_GAP_MS)).toBe(false);
+    expect(retryAfterSeconds(null, 1_000_000, INQUIRY_MIN_GAP_MS)).toBe(0);
   });
 });
 
