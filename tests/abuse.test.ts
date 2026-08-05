@@ -14,6 +14,7 @@ import {
   retryAfterSeconds,
   isWithinGap,
 } from '../src/lib/rate-limit';
+import { emailBucketKey } from '../src/lib/inquiry-identity';
 
 // --- isBotSubmission (pure) ---
 
@@ -256,6 +257,53 @@ describe('inquiry sliding-gap policy', () => {
   it('allows the first-ever submission, when there is no previous hit', () => {
     expect(isWithinGap(null, 1_000_000, INQUIRY_MIN_GAP_MS)).toBe(false);
     expect(retryAfterSeconds(null, 1_000_000, INQUIRY_MIN_GAP_MS)).toBe(0);
+  });
+});
+
+// --- Email identity key (pure) ---
+
+describe('emailBucketKey', () => {
+  it('derives a stable key from a well-formed email', () => {
+    const key = emailBucketKey({ email: 'badger@wisc.edu' });
+    expect(key).not.toBeNull();
+    expect(key).toBe(emailBucketKey({ email: 'badger@wisc.edu' }));
+  });
+
+  it('treats case and surrounding whitespace as the same submitter', () => {
+    const canonical = emailBucketKey({ email: 'badger@wisc.edu' });
+    expect(emailBucketKey({ email: 'BADGER@WISC.EDU' })).toBe(canonical);
+    expect(emailBucketKey({ email: '  Badger@Wisc.edu  ' })).toBe(canonical);
+  });
+
+  it('separates different submitters', () => {
+    expect(emailBucketKey({ email: 'one@wisc.edu' })).not.toBe(
+      emailBucketKey({ email: 'two@wisc.edu' }),
+    );
+  });
+
+  it('never exposes the raw address, so no PII reaches the rate-limit table', () => {
+    const key = emailBucketKey({ email: 'badger@wisc.edu' });
+    expect(key).not.toContain('@');
+    expect(key).not.toContain('badger');
+    expect(key).not.toContain('wisc');
+  });
+
+  it('returns null for a missing, blank, or non-string email rather than throwing', () => {
+    expect(emailBucketKey({})).toBeNull();
+    expect(emailBucketKey({ email: '' })).toBeNull();
+    expect(emailBucketKey({ email: '   ' })).toBeNull();
+    expect(emailBucketKey({ email: 42 })).toBeNull();
+    expect(emailBucketKey({ email: null })).toBeNull();
+  });
+
+  it('returns null for a non-object body rather than throwing', () => {
+    expect(emailBucketKey(null)).toBeNull();
+    expect(emailBucketKey(undefined)).toBeNull();
+    expect(emailBucketKey('badger@wisc.edu')).toBeNull();
+  });
+
+  it('scopes the key to the inquiry endpoint so it cannot collide with an ip bucket', () => {
+    expect(emailBucketKey({ email: 'badger@wisc.edu' })).toMatch(/^inquiry:email:[0-9a-f]{64}$/);
   });
 });
 
