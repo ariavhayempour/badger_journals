@@ -1,4 +1,4 @@
-# 0018 — Bulk-select delete for submissions
+# Bulk-select delete for submissions
 
 Replaces the per-row delete icon button in the admin submissions Edit mode with checkbox
 multi-select and a single "Delete (N)" bulk-delete action.
