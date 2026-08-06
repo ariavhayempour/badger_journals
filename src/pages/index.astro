@@ -10,6 +10,9 @@ import { team } from '../data/team';
 import { digests } from '../data/digests';
 import { listEvents } from '../db/event';
 import { splitMeetings, type MeetingView } from '../lib/split-meetings';
+import { REVALIDATE_CACHE_CONTROL } from '../lib/cache-headers';
+
+Astro.response.headers.set('Cache-Control', REVALIDATE_CACHE_CONTROL);
 
 const rows = await listEvents();
 const view: MeetingView[] = rows.map((r) => ({
