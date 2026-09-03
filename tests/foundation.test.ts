@@ -50,7 +50,7 @@ describe('Footer.astro', () => {
     const html = await container.renderToString(Footer);
     expect(html).toContain('Madison, WI, 53706');
     expect(html).toContain('https://www.instagram.com/badgerjournals/');
-    expect(html).toContain('https://www.linkedin.com/in/badger-journals-551922414/');
+    expect(html).toContain('https://www.linkedin.com/company/badger-journals/about/');
   });
 });
 

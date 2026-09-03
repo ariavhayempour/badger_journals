@@ -5,8 +5,8 @@
 ## Tech Stack
 
 - Language: TypeScript (strict mode, `astro/tsconfigs/strict`)
-- Framework: Astro 5 with `output: 'server'` (SSR via `@astrojs/vercel`)
-- Runtime: Node 20+
+- Framework: Astro 7 with `output: 'server'` (SSR via `@astrojs/vercel`)
+- Runtime: Node 22+
 - Package manager: pnpm (11.4.0)
 - Test runner: Vitest
 - Hosting / CI: Vercel (GitHub → Vercel auto-deploy on `main`)
