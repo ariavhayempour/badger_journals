@@ -48,7 +48,7 @@ const marquee = [...members, ...members]; // duplicated for a seamless loop
 ---
 <BaseLayout
   title="Badger Journals"
-  description="A journal club dedicated to reading, discussing, and reviewing the latest scientific papers — making cutting-edge research accessible to everyone."
+  description="We read and discuss the latest scientific findings to make research approachable for students at UW–Madison."
   path="/"
 >
   <!-- Hero -->
@@ -71,10 +71,10 @@ const marquee = [...members, ...members]; // duplicated for a seamless loop
         Badger Journals
       </h1>
       <p class="mt-4 font-serif text-[clamp(1.25rem,2.4vw,1.75rem)] font-semibold text-white/95">
-        Research made <em class="font-semibold italic">Readable</em>.
+        Research Made <em class="font-semibold italic">Approachable</em>.
       </p>
       <p class="mt-4 max-w-[46ch] text-base sm:text-lg leading-relaxed text-white/80">
-        We read, discuss, and write about the latest scientific papers to turn complicated literature into digests any undergraduate can follow.
+        We read and discuss the latest scientific findings to make research approachable for students at UW–Madison.
       </p>
       <div class="mt-8 flex flex-wrap items-center gap-4">
         <a href="/meetings" class={cn(buttonVariants({ variant: 'default' }), 'h-12 px-6 text-base')}>
@@ -95,7 +95,7 @@ const marquee = [...members, ...members]; // duplicated for a seamless loop
     <dl class="grid grid-cols-2 overflow-hidden rounded-2xl border border-border bg-card shadow-[0_10px_30px_rgb(28_25_23/0.10)] lg:grid-cols-4">
       {[
         { n: '3', l: 'Research areas covered' },
-        { n: '3+', l: 'Student contributors' },
+        { n: '11+', l: 'Members' },
         { n: 'Weekly', l: 'Journal club meetings' },
         { n: 'All', l: 'Majors welcome' },
       ].map((f, i) => (
@@ -112,7 +112,7 @@ const marquee = [...members, ...members]; // duplicated for a seamless loop
     <div>
       <p class="mb-3 text-xs font-bold tracking-[0.14em] text-primary uppercase">Our Mission</p>
       <h2 class="font-serif text-[clamp(1.9rem,3.4vw,2.8rem)] leading-[1.1] font-bold tracking-tight text-balance">
-        Making research accessible to everyone.
+        Making research approachable for students.
       </h2>
       <p class="mt-5 max-w-[52ch] text-lg text-muted-foreground">
         As an undergraduate researcher, you are often thrown into research with little understanding of how it works. While vast knowledge is freely available online, finding, reading, and understanding primary literature can be challenging when you're new to research.
@@ -121,7 +121,7 @@ const marquee = [...members, ...members]; // duplicated for a seamless loop
         Equally important, and often more difficult, is communicating what you learn. The ability to critically analyze scientific papers and clearly explain complex concepts is essential whether you pursue graduate school, medicine, or industry.
       </p>
       <p class="mt-4 max-w-[52ch] text-lg text-muted-foreground">
-        Badger Journals helps undergraduates build these skills through reading, discussing, and writing about research, making scientific literature accessible while helping students become stronger scientists and communicators.
+        Badger Journals helps undergraduates build these skills by reading and discussing research — making scientific literature approachable while helping students become stronger scientists and communicators.
       </p>
     </div>
     <div class="rounded-2xl border border-border/80 bg-[#f7f4ee] p-7 shadow-xs sm:p-8">
@@ -174,7 +174,7 @@ const marquee = [...members, ...members]; // duplicated for a seamless loop
     <section class="mx-auto max-w-6xl px-6 py-20">
       <h2 class="font-serif text-[clamp(1.9rem,3.4vw,2.8rem)] font-bold tracking-tight">Digests across the sciences</h2>
       <p class="mt-2 mb-9 max-w-[60ch] text-lg text-muted-foreground">
-        Student-written reviews in the fields our members care about.
+        Student-led digests in the fields our members care about.
       </p>
       <ul class="grid gap-5 [grid-template-columns:repeat(auto-fit,minmax(250px,1fr))]">
         {digests.map((a) => (
@@ -234,7 +234,7 @@ const marquee = [...members, ...members]; // duplicated for a seamless loop
       <div>
         <h2 class="font-serif text-[clamp(2rem,4vw,3.1rem)] leading-tight font-bold tracking-tight">Start the next digest.</h2>
         <p class="mt-3 max-w-[48ch] text-lg text-white/85">
-          Every area of science deserves accessible, student-written reviews. If you're
+          Every area of science deserves accessible, student-led digests. If you're
           passionate about a field, we'll help you build it.
         </p>
       </div>
