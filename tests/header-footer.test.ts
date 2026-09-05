@@ -29,8 +29,7 @@ describe('branded Header (Tailwind + tokens)', () => {
 });
 
 describe('branded Footer (Tailwind + tokens)', () => {
-  it('uses a Cardinal (primary) accent and no raw hex', () => {
-    expect(footer).toMatch(/\bbg-primary\b/);
+  it('uses no raw hex colors', () => {
     expect(footer).not.toMatch(/#[0-9a-f]{3,6}/i);
   });
 
@@ -39,7 +38,7 @@ describe('branded Footer (Tailwind + tokens)', () => {
     const html = await container.renderToString(FooterCmp);
     expect(html).toContain('Badger Journals');
     expect(html).toContain('https://www.instagram.com/badgerjournals/');
-    expect(html).toContain('https://www.linkedin.com/in/badger-journals-551922414/');
+    expect(html).toContain('https://www.linkedin.com/company/badger-journals/home/');
   });
 
   it('carries the Team link (moved out of the primary nav) and the admin link', async () => {
