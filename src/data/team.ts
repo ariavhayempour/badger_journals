@@ -1,8 +1,10 @@
 import type { ImageMetadata } from 'astro';
 import aditBhootra from '../assets/images/team/adit-bhootra.jpg';
 import ariavHayempour from '../assets/images/team/ariav-hayempour.jpg';
+import beaRayel from '../assets/images/team/bea-rayel.jpg';
 import grantKastman from '../assets/images/team/grant-kastman.jpg';
 import jeddJang from '../assets/images/team/jedd-jang.jpg';
+import kevinTran from '../assets/images/team/kevin-tran.jpg';
 import miaNgo from '../assets/images/team/mia-ngo.jpg';
 import sunayPatel from '../assets/images/team/sunay-patel.jpg';
 import tyWeaver from '../assets/images/team/ty-weaver.jpg';
@@ -44,8 +46,8 @@ export const team: TeamGroup[] = [
   {
     title: 'Outreach & Media',
     members: [
-      { name: 'Kevin Tran', role: 'Outreach Chair', major: 'Neuroscience', classOf: 'Class of 2028' },
-      { name: 'TBD', role: 'Media Chair needed!', major: 'TBD', classOf: 'TBD' },
+      { name: 'Kevin Tran', role: 'Outreach Chair', major: 'Neuroscience', classOf: 'Class of 2028', photo: kevinTran },
+      { name: 'Bea Rayel', role: 'Media Chair', major: 'Neurobiology', classOf: 'Class of 2028', photo: beaRayel },
     ],
   },
   {
