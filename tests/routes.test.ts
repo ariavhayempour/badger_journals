@@ -1,8 +1,12 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
+
+vi.mock('../src/db/event', () => ({ listEvents: async () => [] }));
 import Team from '../src/pages/team.astro';
 import CreateNextDigest from '../src/pages/create-next-digest.astro';
 import Contact from '../src/pages/contact.astro';
+
+import Index from '../src/pages/index.astro';
 
 // /meetings is now SSR, so it moved out of this fully-static set (docs/claude/0013-events-admin.md).
 const STATIC_PAGES = [
@@ -48,7 +52,12 @@ describe('contact page inquiry form', () => {
   });
 });
 
-describe('team + create-next-digest contact links', () => {
+describe('team + create-next-digest + index contact links', () => {
+  it('index page links to contact form with type=digest', async () => {
+    const html = await render(Index);
+    expect(html).toMatch(/href="\/contact\?type=digest"/);
+  });
+
   it('team page links to contact form with type=join', async () => {
     const html = await render(Team);
     expect(html).toMatch(/href="\/contact\?type=join"/);
