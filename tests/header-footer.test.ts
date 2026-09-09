@@ -22,7 +22,7 @@ describe('branded Header (Tailwind + tokens)', () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(HeaderCmp);
     expect(html).toContain('Badger Journals');
-    for (const href of ['/', '/meetings', '/create-next-digest', '/contact']) {
+    for (const href of ['/', '/meetings', '/create-next-digest', '/contact', '/interest']) {
       expect(html).toContain(`href="${href}"`);
     }
   });

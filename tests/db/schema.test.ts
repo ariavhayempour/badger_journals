@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { SUBMISSION_TYPES, RATE_LIMIT_COLUMNS, EVENT_COLUMNS, RSVP_STATUSES } from '../../src/db/schema';
+import { SUBMISSION_TYPES, RATE_LIMIT_COLUMNS, EVENT_COLUMNS, RSVP_STATUSES, INTEREST_FORM_COLUMNS } from '../../src/db/schema';
 
 const readMigration = (name: string): string =>
   readFileSync(fileURLToPath(new URL(`../../migrations/${name}`, import.meta.url)), 'utf8');
@@ -11,6 +11,7 @@ const rateLimitMigration = readMigration('0002_rate_limit.sql');
 const eventsMigration = readMigration('0003_events.sql');
 const rsvpStatusMigration = readMigration('0005_rsvp_status.sql');
 const slidingMigration = readMigration('0006_rate_limit_sliding.sql');
+const interestFormsMigration = readMigration('0007_interest_forms.sql');
 
 describe('schema ↔ DDL sync', () => {
   it('SUBMISSION_TYPES equals the submission_type CHECK values in the migration', () => {
@@ -51,5 +52,13 @@ describe('schema ↔ DDL sync', () => {
 
     const ddlColumns = [...block![1].matchAll(/^\s*([a-z_]+)\s+(?:BIGINT|TEXT|TIMESTAMPTZ)\b/gim)].map((m) => m[1]);
     expect(ddlColumns.sort()).toEqual([...Object.values(EVENT_COLUMNS)].sort());
+  });
+
+  it('INTEREST_FORM_COLUMNS mirror the interest_forms columns in the migration', () => {
+    const block = interestFormsMigration.match(/CREATE TABLE interest_forms\s*\(([\s\S]*?)\);/i);
+    expect(block, 'interest_forms table not found in migration').not.toBeNull();
+
+    const ddlColumns = [...block![1].matchAll(/^\s*([a-z_]+)\s+(?:BIGINT|TEXT|TIMESTAMPTZ)\b/gim)].map((m) => m[1]);
+    expect(ddlColumns.sort()).toEqual([...Object.values(INTEREST_FORM_COLUMNS)].sort());
   });
 });
