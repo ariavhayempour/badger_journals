@@ -26,11 +26,12 @@ const eventRow: EventRow = {
   created_at: '2099-01-01T00:00:00Z',
 };
 
-// Load the dashboard with all three DB reads replaced by spies (CI has no DATABASE_URL).
+// Load the dashboard with DB reads replaced by spies (CI has no DATABASE_URL).
 async function loadDashboard(opts: { events?: EventRow[]; submissions?: SubmissionRow[] } = {}) {
   vi.resetModules();
   vi.doMock(src('db/rsvp'), () => ({ listRsvps: vi.fn(async () => []) }));
   vi.doMock(src('db/submission'), () => ({ listSubmissions: vi.fn(async () => opts.submissions ?? []) }));
+  vi.doMock(src('db/interest'), () => ({ listInterestForms: vi.fn(async () => []) }));
   const listEvents = vi.fn(async () => opts.events ?? []);
   vi.doMock(src('db/event'), () => ({ listEvents }));
   const { default: Comp } = await import('../../src/pages/admin/index.astro');
@@ -40,6 +41,7 @@ async function loadDashboard(opts: { events?: EventRow[]; submissions?: Submissi
 afterEach(() => {
   vi.doUnmock(src('db/rsvp'));
   vi.doUnmock(src('db/submission'));
+  vi.doUnmock(src('db/interest'));
   vi.doUnmock(src('db/event'));
   vi.resetModules();
 });

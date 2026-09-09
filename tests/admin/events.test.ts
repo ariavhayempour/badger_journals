@@ -28,6 +28,7 @@ const getReq = (url: string): Request => new Request(url, { method: 'GET' });
 function mockChrome() {
   vi.doMock(src('db/rsvp'), () => ({ listRsvps: vi.fn(async () => []) }));
   vi.doMock(src('db/submission'), () => ({ listSubmissions: vi.fn(async () => []) }));
+  vi.doMock(src('db/interest'), () => ({ listInterestForms: vi.fn(async () => []) }));
 }
 
 async function loadIndex(

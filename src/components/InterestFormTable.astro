@@ -1,0 +1,104 @@
+---
+import type { InterestFormRow } from '../db/schema';
+
+interface Props {
+  interestForms: InterestFormRow[];
+}
+const { interestForms } = Astro.props;
+
+const formatTimestamp = (iso: string): string =>
+  new Date(iso).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+
+const th = 'border-b border-border/60 bg-muted/40 px-5 py-3 text-left text-[0.7rem] font-bold tracking-[0.08em] text-muted-foreground uppercase';
+const td = 'border-b border-border/50 px-5 py-3.5 align-top';
+---
+{
+  interestForms.length === 0 ? (
+    <p class="px-5 py-8 text-muted-foreground">No interest form submissions yet.</p>
+  ) : (
+    <div class="overflow-x-auto">
+      <table class="w-full border-collapse text-sm">
+        <thead>
+          <tr>
+            <th scope="col" class={th}>First Name</th>
+            <th scope="col" class={th}>Last Name</th>
+            <th scope="col" class={th}>Year in School</th>
+            <th scope="col" class={th}>Email</th>
+            <th scope="col" class={th}>Submitted</th>
+            <th scope="col" class={`${th} w-16 text-right`} style="display: none;" data-mode="edit" aria-label="Actions" />
+          </tr>
+        </thead>
+        <tbody>
+          {interestForms.map((item) => (
+            <tr
+              class="transition-colors hover:bg-muted/40"
+              data-interest-id={item.id}
+              data-search={`${item.first_name} ${item.last_name} ${item.email} ${item.year_in_school}`.toLowerCase()}
+            >
+              <td class={`${td} font-semibold`} data-field="firstName">{item.first_name}</td>
+              <td class={`${td} font-semibold`} data-field="lastName">{item.last_name}</td>
+              <td class={`${td} text-foreground`} data-field="yearInSchool">{item.year_in_school}</td>
+              <td class={`${td} text-muted-foreground`} data-field="email">{item.email}</td>
+              <td class={`${td} whitespace-nowrap text-muted-foreground`}>{formatTimestamp(item.created_at)}</td>
+              <td class={`${td} w-16 text-right`} style="display: none;" data-mode="edit">
+                <button
+                  type="button"
+                  class="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive cursor-pointer"
+                  data-action="delete"
+                  aria-label={`Delete submission from ${item.first_name} ${item.last_name}`}
+                  title="Delete submission"
+                >
+                  <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /><line x1="10" x2="10" y1="11" y2="17" /><line x1="14" x2="14" y1="11" y2="17" />
+                  </svg>
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+{interestForms.length > 0 && (
+  <p id="interest-forms-empty-filtered" class="hidden px-5 py-14 text-center text-muted-foreground">
+    No interest form submissions match your search.
+  </p>
+)}
+
+<script>
+  const editBtn = document.getElementById('edit-interest-btn');
+  if (editBtn) {
+    editBtn.addEventListener('click', () => {
+      const isEditing = editBtn.getAttribute('data-editing') === 'true';
+      const nextEditing = !isEditing;
+      editBtn.setAttribute('data-editing', String(nextEditing));
+      editBtn.textContent = nextEditing ? 'Done' : 'Manage';
+
+      document.querySelectorAll<HTMLElement>('[data-mode="edit"]').forEach((el) => {
+        el.style.display = nextEditing ? 'table-cell' : 'none';
+      });
+    });
+  }
+
+  document.querySelectorAll<HTMLTableRowElement>('tr[data-interest-id]').forEach((row) => {
+    const id = row.getAttribute('data-interest-id');
+    const name = `${row.querySelector('[data-field="firstName"]')?.textContent ?? ''} ${row.querySelector('[data-field="lastName"]')?.textContent ?? ''}`.trim();
+
+    row.querySelector('[data-action="delete"]')?.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      if (!confirm(`Delete interest form submission from ${name}?`)) return;
+
+      row.style.opacity = '0.5';
+      try {
+        const res = await fetch(`/admin/api/interest-forms/${id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error();
+        row.remove();
+        document.dispatchEvent(new CustomEvent('interest-forms:changed'));
+      } catch {
+        alert('Failed to delete submission');
+        row.style.opacity = '1';
+      }
+    });
+  });
+</script>
