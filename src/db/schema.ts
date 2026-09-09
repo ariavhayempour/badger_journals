@@ -42,11 +42,21 @@ export interface EventRow {
   created_at: string;
 }
 
+export interface InterestFormRow {
+  id: number;
+  first_name: string;
+  last_name: string;
+  year_in_school: string;
+  email: string;
+  created_at: string;
+}
+
 export const TABLES = {
   rsvps: 'rsvps',
   submissions: 'submissions',
   rateLimitHits: 'rate_limit_hits',
   events: 'events',
+  interestForms: 'interest_forms',
 } as const;
 
 export const RSVP_COLUMNS = {
@@ -82,5 +92,14 @@ export const EVENT_COLUMNS = {
   title: 'title',
   time: 'time',
   location: 'location',
+  createdAt: 'created_at',
+} as const;
+
+export const INTEREST_FORM_COLUMNS = {
+  id: 'id',
+  firstName: 'first_name',
+  lastName: 'last_name',
+  yearInSchool: 'year_in_school',
+  email: 'email',
   createdAt: 'created_at',
 } as const;

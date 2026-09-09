@@ -1,0 +1,29 @@
+---
+export const prerender = false;
+import BaseLayout from '../layouts/BaseLayout.astro';
+import InterestForm from '../components/InterestForm.astro';
+import { REVALIDATE_CACHE_CONTROL } from '../lib/cache-headers';
+
+Astro.response.headers.set('Cache-Control', REVALIDATE_CACHE_CONTROL);
+---
+<BaseLayout
+  title="Interest Form"
+  description="Get involved with Badger Journals by filling out our interest form."
+  path="/interest"
+>
+  <section class="border-b border-border bg-cream">
+    <div class="mx-auto max-w-4xl px-6 py-16 sm:py-20">
+      <p class="mb-3 text-xs font-bold tracking-[0.14em] text-primary uppercase">Interest Form</p>
+      <h1 class="font-serif text-[clamp(2.4rem,5vw,3.6rem)] leading-[1.05] font-extrabold tracking-tight text-balance">
+        Get involved with Badger Journals.
+      </h1>
+      <p class="mt-4 max-w-[60ch] text-lg text-muted-foreground">
+        Let us know you're interested in joining or participating. Fill out the form below to get started.
+      </p>
+    </div>
+  </section>
+
+  <div class="mx-auto max-w-4xl px-6 py-12">
+    <InterestForm />
+  </div>
+</BaseLayout>

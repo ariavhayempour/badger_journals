@@ -1,0 +1,189 @@
+---
+import { MAX_NAME, MAX_EMAIL } from '../lib/limits';
+
+const field = 'h-10 w-full rounded-lg border border-input bg-background px-3 text-base md:text-sm shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-[invalid=true]:border-destructive aria-[invalid=true]:ring-destructive/20';
+---
+<form class="interest mt-6 grid gap-4 rounded-2xl border border-border bg-card p-6 shadow-[0_10px_30px_rgb(28_25_23/0.06)] sm:p-8" method="post" action="/api/interest" novalidate data-interest>
+  <p class="font-serif text-lg font-semibold">Submit your interest</p>
+
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div class="grid gap-1.5">
+      <label for="interest-first-name" class="text-sm font-medium">First Name</label>
+      <input id="interest-first-name" name="firstName" type="text" autocomplete="given-name" required maxlength={MAX_NAME} aria-describedby="interest-first-name-err" class={field} />
+      <p class="text-sm text-destructive" id="interest-first-name-err" data-error-for="firstName" hidden></p>
+    </div>
+
+    <div class="grid gap-1.5">
+      <label for="interest-last-name" class="text-sm font-medium">Last Name</label>
+      <input id="interest-last-name" name="lastName" type="text" autocomplete="family-name" required maxlength={MAX_NAME} aria-describedby="interest-last-name-err" class={field} />
+      <p class="text-sm text-destructive" id="interest-last-name-err" data-error-for="lastName" hidden></p>
+    </div>
+  </div>
+
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div class="grid gap-1.5">
+      <label for="interest-year" class="text-sm font-medium">Year in School</label>
+      <select id="interest-year" name="yearInSchool" required aria-describedby="interest-year-err" class={field}>
+        <option value="" disabled selected>Select year in school</option>
+        <option value="Freshman">Freshman</option>
+        <option value="Sophomore">Sophomore</option>
+        <option value="Junior">Junior</option>
+        <option value="Senior">Senior</option>
+        <option value="Graduate Student">Graduate Student</option>
+        <option value="Other">Other</option>
+      </select>
+      <p class="text-sm text-destructive" id="interest-year-err" data-error-for="yearInSchool" hidden></p>
+    </div>
+
+    <div class="grid gap-1.5">
+      <label for="interest-email" class="text-sm font-medium">Email (@wisc.edu)</label>
+      <input id="interest-email" name="email" type="email" autocomplete="email" required maxlength={MAX_EMAIL} aria-describedby="interest-email-err" class={field} />
+      <p class="text-sm text-destructive" id="interest-email-err" data-error-for="email" hidden></p>
+    </div>
+  </div>
+
+  <div class="absolute -left-[9999px] h-px w-px overflow-hidden" aria-hidden="true">
+    <input type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true" />
+  </div>
+
+  <button type="submit" class="inline-flex h-10 w-fit items-center justify-center rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-progress disabled:opacity-60">Submit Interest Form</button>
+
+  <p class="interest-status m-0 text-sm font-medium" id="interest-status" role="status" aria-live="polite" data-status hidden></p>
+
+  <div class="fixed inset-0 z-50 grid place-items-center bg-black/50 p-6" id="interest-dialog" role="dialog" aria-modal="true" aria-labelledby="interest-dialog-title" data-modal hidden>
+    <div class="max-w-sm rounded-2xl border border-border bg-card p-6 shadow-xl">
+      <h2 id="interest-dialog-title" class="font-serif text-xl font-bold">Already submitted</h2>
+      <p class="mt-2 text-muted-foreground">This email has already submitted an interest form.</p>
+      <button type="button" data-modal-close class="mt-4 inline-flex h-10 items-center justify-center rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90">Close</button>
+    </div>
+  </div>
+</form>
+
+<script>
+  import { validateInterestForm, type InterestFormField } from '../lib/interest-validation';
+
+  type ApiError = { field: InterestFormField; message: string };
+
+  function setError(form: HTMLFormElement, field: InterestFormField, message: string | null): void {
+    const input = form.querySelector<HTMLInputElement | HTMLSelectElement>(`[name="${field}"]`);
+    const box = form.querySelector<HTMLElement>(`[data-error-for="${field}"]`);
+    if (!input || !box) return;
+    if (message) {
+      box.textContent = message;
+      box.hidden = false;
+      input.setAttribute('aria-invalid', 'true');
+    } else {
+      box.textContent = '';
+      box.hidden = true;
+      input.removeAttribute('aria-invalid');
+    }
+  }
+
+  function clearErrors(form: HTMLFormElement): void {
+    (['firstName', 'lastName', 'yearInSchool', 'email'] as InterestFormField[]).forEach((f) => setError(form, f, null));
+  }
+
+  function showStatus(form: HTMLFormElement, message: string, tone: 'ok' | 'error'): void {
+    const status = form.querySelector<HTMLElement>('[data-status]');
+    if (!status) return;
+    status.textContent = message;
+    status.dataset.tone = tone;
+    status.hidden = false;
+  }
+
+  function firstInvalid(form: HTMLFormElement, errors: ApiError[]): void {
+    const first = form.querySelector<HTMLElement>(`[name="${errors[0]?.field}"]`);
+    first?.focus();
+  }
+
+  function openModal(form: HTMLFormElement): void {
+    const modal = form.querySelector<HTMLElement>('[data-modal]');
+    if (!modal) return;
+    const restore = document.activeElement as HTMLElement | null;
+    modal.hidden = false;
+    const focusable = modal.querySelectorAll<HTMLElement>('button, [href], input, [tabindex]:not([tabindex="-1"])');
+    const closeBtn = modal.querySelector<HTMLButtonElement>('[data-modal-close]');
+    closeBtn?.focus();
+
+    const close = (): void => {
+      modal.hidden = true;
+      document.removeEventListener('keydown', onKey);
+      restore?.focus();
+    };
+    const onKey = (e: KeyboardEvent): void => {
+      if (e.key === 'Escape') {
+        close();
+      } else if (e.key === 'Tab' && focusable.length > 0) {
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    closeBtn?.addEventListener('click', close, { once: true });
+  }
+
+  function enhance(form: HTMLFormElement): void {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearErrors(form);
+      const data = new FormData(form);
+      const input = {
+        firstName: String(data.get('firstName') ?? ''),
+        lastName: String(data.get('lastName') ?? ''),
+        yearInSchool: String(data.get('yearInSchool') ?? ''),
+        email: String(data.get('email') ?? ''),
+      };
+      const company = String(data.get('company') ?? '');
+
+      const clientErrors = validateInterestForm(input);
+      if (clientErrors.length > 0) {
+        clientErrors.forEach((err) => setError(form, err.field, err.message));
+        firstInvalid(form, clientErrors);
+        return;
+      }
+
+      const button = form.querySelector<HTMLButtonElement>('[type="submit"]');
+      if (button) button.disabled = true;
+      try {
+        const res = await fetch('/api/interest', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ ...input, company }),
+        });
+        if (res.status === 201) {
+          form.reset();
+          showStatus(form, "Thank you for your interest! We've received your submission.", 'ok');
+        } else if (res.status === 409) {
+          openModal(form);
+        } else if (res.status === 400) {
+          const body = (await res.json().catch(() => ({}))) as { errors?: ApiError[] };
+          const errors = body.errors ?? [];
+          errors.forEach((err) => setError(form, err.field, err.message));
+          firstInvalid(form, errors);
+        } else if (res.status === 429) {
+          showStatus(form, "You're doing that too often. Please wait a minute and try again.", 'error');
+        } else {
+          showStatus(form, 'Something went wrong. Please try again.', 'error');
+        }
+      } catch {
+        showStatus(form, 'Network error. Please try again.', 'error');
+      } finally {
+        if (button) button.disabled = false;
+      }
+    });
+  }
+
+  document.querySelectorAll<HTMLFormElement>('form[data-interest]').forEach(enhance);
+</script>
+
+<style>
+  .interest-status[data-tone='ok'] { color: var(--cardinal-700); }
+  .interest-status[data-tone='error'] { color: var(--destructive); }
+</style>
