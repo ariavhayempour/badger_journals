@@ -9,8 +9,9 @@ import Badge from '../../components/admin/Badge.astro';
 import { listRsvps } from '../../db/rsvp';
 import { listSubmissions } from '../../db/submission';
 import { listEvents } from '../../db/event';
+import { listInterestForms } from '../../db/interest';
 
-const [rsvps, submissions, events] = await Promise.all([listRsvps(), listSubmissions(), listEvents()]);
+const [rsvps, submissions, events, interestForms] = await Promise.all([listRsvps(), listSubmissions(), listEvents(), listInterestForms()]);
 
 const today = new Date().toISOString().slice(0, 10);
 const upcoming = events.filter((e) => e.date >= today).sort((a, b) => a.date.localeCompare(b.date));
@@ -32,17 +33,19 @@ const ICON = {
   events: 'M3 5h18v16H3zM3 9h18M8 3v4M16 3v4',
   rsvps: 'M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9.5 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8',
   submissions: 'M4 4h16v16H4zM4 7l8 6 8-6',
+  interestForms: 'M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2 M9 2h6a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z M9 12h6 M9 16h6',
 };
 const now = new Date();
 const todayLabel = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 ---
-<AdminLayout title="Dashboard" rsvpsCount={rsvps.length} unreadSubmissionsCount={submissions.filter((s) => !s.is_read).length}>
+<AdminLayout title="Dashboard" rsvpsCount={rsvps.length} unreadSubmissionsCount={submissions.filter((s) => !s.is_read).length} interestFormsCount={interestForms.length}>
   <PageHeader title="Dashboard" subtitle={`A snapshot of club activity — ${todayLabel}.`} />
 
-  <div class="mb-8 grid gap-4 sm:grid-cols-3">
+  <div class="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
     <StatCard label="Upcoming meetings" value={upcoming.length} hint={nextHint} iconPath={ICON.events} href="/admin/events" />
     <StatCard label="Total RSVPs" value={rsvps.length} iconPath={ICON.rsvps} href="/admin/rsvps" />
     <StatCard label="Submissions" value={submissions.length} iconPath={ICON.submissions} href="/admin/submissions" />
+    <StatCard label="Interest Forms" value={interestForms.length} iconPath={ICON.interestForms} href="/admin/interest-forms" />
   </div>
 
   <div class="grid gap-6 lg:grid-cols-2">

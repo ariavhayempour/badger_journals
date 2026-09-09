@@ -9,16 +9,19 @@ import Header from '../components/Header.astro';
 import { type AdminLink } from '../components/AdminNav';
 import { listRsvps } from '../db/rsvp';
 import { listSubmissions } from '../db/submission';
+import { listInterestForms } from '../db/interest';
 
 interface Props {
   title: string;
   rsvpsCount?: number;
   unreadSubmissionsCount?: number;
+  interestFormsCount?: number;
 }
-const { title, rsvpsCount: propRsvps, unreadSubmissionsCount: propUnreadSubmissions } = Astro.props;
+const { title, rsvpsCount: propRsvps, unreadSubmissionsCount: propUnreadSubmissions, interestFormsCount: propInterestForms } = Astro.props;
 
 const rsvpsCount = propRsvps ?? (await listRsvps()).length;
 const unreadSubmissionsCount = propUnreadSubmissions ?? (await listSubmissions()).filter((s) => !s.is_read).length;
+const interestFormsCount = propInterestForms ?? (await listInterestForms()).length;
 
 const current = Astro.url.pathname;
 const isActive = (href: string) => (href === '/admin' ? current === '/admin' : current.startsWith(href));
@@ -28,6 +31,7 @@ const links: AdminLink[] = [
   { href: '/admin/events', label: 'Events', icon: 'events', active: isActive('/admin/events') },
   { href: '/admin/rsvps', label: 'RSVPs', icon: 'rsvps', count: rsvpsCount, active: isActive('/admin/rsvps') },
   { href: '/admin/submissions', label: 'Submissions', icon: 'submissions', count: unreadSubmissionsCount, active: isActive('/admin/submissions') },
+  { href: '/admin/interest-forms', label: 'Interest Forms', icon: 'interestForms', count: interestFormsCount, active: isActive('/admin/interest-forms') },
 ];
 
 // Inline icons keep the desktop sidebar server-rendered (no hydration).
@@ -36,6 +40,7 @@ const icons: Record<AdminLink['icon'], string> = {
   events: 'M3 5h18v16H3zM3 9h18M8 3v4M16 3v4',
   rsvps: 'M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9.5 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M22 21v-2a4 4 0 0 0-3-3.87',
   submissions: 'M4 4h16v16H4zM4 7l8 6 8-6',
+  interestForms: 'M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2 M9 2h6a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z M9 12h6 M9 16h6',
 };
 ---
 <!doctype html>
@@ -68,7 +73,7 @@ const icons: Record<AdminLink['icon'], string> = {
               </svg>
               {l.label}
               <span
-                id={l.icon === 'submissions' ? 'nav-submissions-count' : l.icon === 'rsvps' ? 'nav-rsvps-count' : undefined}
+                id={l.icon === 'submissions' ? 'nav-submissions-count' : l.icon === 'rsvps' ? 'nav-rsvps-count' : l.icon === 'interestForms' ? 'nav-interest-forms-count' : undefined}
                 class:list={[
                   'ml-auto grid h-5 min-w-[22px] place-items-center rounded-full px-1.5 text-xs font-bold',
                   l.active ? 'bg-primary text-primary-foreground' : 'bg-black/[0.06] text-muted-foreground',
@@ -101,6 +106,15 @@ const icons: Record<AdminLink['icon'], string> = {
           const total = document.querySelectorAll('tr[data-rsvp-id]').length;
           rsvpsBadge.textContent = String(total);
           rsvpsBadge.classList.toggle('hidden', total === 0);
+        });
+      }
+
+      const interestBadge = document.getElementById('nav-interest-forms-count');
+      if (interestBadge) {
+        document.addEventListener('interest-forms:changed', () => {
+          const total = document.querySelectorAll('tr[data-interest-id]').length;
+          interestBadge.textContent = String(total);
+          interestBadge.classList.toggle('hidden', total === 0);
         });
       }
     </script>

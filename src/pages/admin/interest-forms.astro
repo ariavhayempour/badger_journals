@@ -1,0 +1,25 @@
+---
+// Per-request SSR read of interest forms. The /admin gate (middleware) covers this route.
+export const prerender = false;
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import PageHeader from '../../components/admin/PageHeader.astro';
+import Panel from '../../components/admin/Panel.astro';
+import InterestFormTable from '../../components/InterestFormTable.astro';
+import { listInterestForms } from '../../db/interest';
+
+const interestForms = await listInterestForms();
+---
+<AdminLayout title="Interest Forms" interestFormsCount={interestForms.length}>
+  <PageHeader title="Interest Forms" subtitle="Submissions from prospective members." />
+  <Panel title="Submissions" count={`${interestForms.length} total`}>
+    <button
+      slot="action"
+      id="edit-interest-btn"
+      type="button"
+      class="text-sm font-semibold text-primary hover:underline cursor-pointer"
+    >
+      Manage
+    </button>
+    <InterestFormTable interestForms={interestForms} />
+  </Panel>
+</AdminLayout>

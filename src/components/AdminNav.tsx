@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Menu, LayoutDashboard, CalendarDays, Users, Inbox } from "lucide-react";
+import { Menu, LayoutDashboard, CalendarDays, Users, Inbox, ClipboardList } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -15,6 +15,7 @@ const ICONS = {
   events: CalendarDays,
   rsvps: Users,
   submissions: Inbox,
+  interestForms: ClipboardList,
 } as const;
 
 export type AdminLink = {
