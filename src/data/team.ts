@@ -8,6 +8,7 @@ import kevinTran from '../assets/images/team/kevin-tran.jpg';
 import miaNgo from '../assets/images/team/mia-ngo.jpg';
 import sunayPatel from '../assets/images/team/sunay-patel.jpg';
 import tyWeaver from '../assets/images/team/ty-weaver.jpg';
+import veSonnleitner from '../assets/images/team/ve-sonnleitner.jpg';
 
 export interface Member {
   name: string;
@@ -48,6 +49,7 @@ export const team: TeamGroup[] = [
     members: [
       { name: 'Kevin Tran', role: 'Outreach Chair', major: 'Neuroscience', classOf: 'Class of 2028', photo: kevinTran },
       { name: 'Bea Rayel', role: 'Media Chair', major: 'Neurobiology', classOf: 'Class of 2028', photo: beaRayel },
+      { name: 'Ve Sonnleitner', role: 'Media Chair', major: 'Neurobiology', classOf: 'Class of 2028', photo: veSonnleitner },
     ],
   },
   {
